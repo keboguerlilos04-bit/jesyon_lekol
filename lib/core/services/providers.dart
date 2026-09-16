@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_user.dart';
 import '../models/school_year.dart';
 import '../models/teacher_profile.dart';
-import '../models/user_role.dart';
 import 'auth_service.dart';
 import 'firestore_service.dart';
 import 'functions_service.dart';
@@ -30,14 +29,6 @@ final functionsServiceProvider = Provider<FunctionsService>((ref) {
 /// Emits whenever the Firebase Auth sign-in state changes.
 final authStateProvider = StreamProvider<User?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges();
-});
-
-/// Resolves the signed-in user's role from custom claims. This is what
-/// go_router's redirect logic uses to gate whole sections of the app.
-final currentRoleProvider = FutureProvider<UserRole?>((ref) async {
-  final authState = ref.watch(authStateProvider).value;
-  if (authState == null) return null;
-  return ref.watch(authServiceProvider).fetchRole();
 });
 
 /// studentIds claim — populated for parent accounts (their children). Used

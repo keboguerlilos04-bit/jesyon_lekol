@@ -70,7 +70,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Signed in: resolve role from custom claims (set by the
       // account-creation Cloud Function — never trust client-side state).
-      final role = await container.read(currentRoleProvider.future);
+      // Called directly on AuthService rather than through
+      // currentRoleProvider.future: reading a FutureProvider's `.future`
+      // right as its `authStateProvider` dependency changes can hand back a
+      // Future tied to the just-invalidated computation, which Riverpod then
+      // abandons in favor of a fresh one — so it never completes and this
+      // redirect hangs forever. Calling fetchRole() directly has no such
+      // dependency-invalidation race.
+      final role = await container.read(authServiceProvider).fetchRole();
       if (role == null) {
         // Token doesn't carry a role claim yet (e.g. brand new account
         // whose claims haven't propagated). Force a fresh token next time.
