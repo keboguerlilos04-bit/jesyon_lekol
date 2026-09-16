@@ -77,7 +77,13 @@ class StudentHomeScreen extends ConsumerWidget {
                     ),
                     body: TabBarView(
                       children: [
-                        GradesReportView(studentId: student.id, classId: student.classId, yearId: year.id),
+                        GradesReportView(
+                          studentId: student.id,
+                          studentName: student.fullName,
+                          classId: student.classId,
+                          yearId: year.id,
+                          yearLabel: year.label,
+                        ),
                         AttendanceSummaryView(studentId: student.id),
                         AssignmentsListView(classId: student.classId),
                       ],
