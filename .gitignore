@@ -1,0 +1,30 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.pub-cache/
+.pub/
+*.g.dart
+
+# Android/iOS/web build artifacts
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+/android/**/gradle-wrapper.jar
+/android/.gradle
+/ios/Pods/
+
+# Firebase / Cloud Functions
+functions/lib/
+functions/node_modules/
+functions/serviceAccountKey.json
+functions/*.log
+.firebase/
+firebase-debug.log
+ui-debug.log
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
