@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,32 +23,27 @@ const Map<UserRole, String> kRoleHomeRoute = {
   UserRole.student: '/student',
 };
 
-/// Bridges a Stream (Firebase auth state) to a Listenable so go_router
-/// re-evaluates its `redirect` callback whenever sign-in state changes.
-class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
-    notifyListeners();
-    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
-  }
-
-  late final StreamSubscription<dynamic> _subscription;
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
-  }
+/// A bare Listenable that go_router polls via `notifyListeners()`.
+class _RouterRefreshNotifier extends ChangeNotifier {
+  void notify() => notifyListeners();
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final refreshStream = GoRouterRefreshStream(
-    ref.watch(authServiceProvider).authStateChanges(),
-  );
-  ref.onDispose(refreshStream.dispose);
+  final refreshNotifier = _RouterRefreshNotifier();
+  ref.onDispose(refreshNotifier.dispose);
+
+  // ref.listen's callback only fires AFTER authStateProvider's own state has
+  // been updated, so `redirect` reading ref.read(authStateProvider) below
+  // can never observe a stale value when notifyListeners triggers it. An
+  // earlier version wired a second, independent authStateChanges()
+  // subscription into a raw ChangeNotifier instead — that could fire
+  // notifyListeners() before Riverpod's own subscription had updated
+  // authStateProvider, permanently stranding the app on the splash screen.
+  ref.listen(authStateProvider, (_, _) => refreshNotifier.notify());
 
   return GoRouter(
     initialLocation: kSplashRoute,
-    refreshListenable: refreshStream,
+    refreshListenable: refreshNotifier,
     routes: [
       GoRoute(path: kSplashRoute, builder: (context, state) => const SplashScreen()),
       GoRoute(path: kLoginRoute, builder: (context, state) => const LoginScreen()),
