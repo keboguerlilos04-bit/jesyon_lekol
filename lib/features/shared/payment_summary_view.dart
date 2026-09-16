@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import '../../core/models/payment_record.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import 'async_error_view.dart';
 
 /// Read-only balance + installment history for one student's school fees.
 /// All writes (recording a payment) go through the admin-only Finance
@@ -18,14 +20,16 @@ class PaymentSummaryView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currency = NumberFormat.currency(symbol: 'HTG ', decimalDigits: 0);
     final dateFormat = DateFormat('dd/MM/yyyy');
+    final l10n = AppLocalizations.of(context)!;
 
     return StreamBuilder<PaymentRecord?>(
       stream: ref.watch(firestoreServiceProvider).watchPayment(studentId, yearId),
       builder: (context, snapshot) {
+        if (snapshot.hasError) return AsyncErrorView(error: snapshot.error);
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final payment = snapshot.data;
         if (payment == null) {
-          return const Center(child: Text('Poko gen enfòmasyon frè pou ane lekòl sa a.'));
+          return Center(child: Text(l10n.noFeeInfo));
         }
 
         return Column(
@@ -36,11 +40,11 @@ class PaymentSummaryView extends ConsumerWidget {
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
               child: Column(
                 children: [
-                  _summaryRow('Total pou peye', currency.format(payment.totalDue)),
-                  _summaryRow('Deja peye', currency.format(payment.amountPaid)),
+                  _summaryRow(l10n.totalToPayLower, currency.format(payment.totalDue)),
+                  _summaryRow(l10n.alreadyPaidLower, currency.format(payment.amountPaid)),
                   const Divider(),
                   _summaryRow(
-                    'Rès pou peye',
+                    l10n.remainingBalanceLower,
                     currency.format(payment.balance),
                     emphasize: true,
                   ),
@@ -50,7 +54,7 @@ class PaymentSummaryView extends ConsumerWidget {
             const Divider(height: 1),
             Expanded(
               child: payment.installments.isEmpty
-                  ? const Center(child: Text('Pa gen vèsman anrejistre.'))
+                  ? Center(child: Text(l10n.noInstallments))
                   : ListView.builder(
                       itemCount: payment.installments.length,
                       itemBuilder: (context, i) {
@@ -62,7 +66,7 @@ class PaymentSummaryView extends ConsumerWidget {
                             color: paid ? Colors.green : null,
                           ),
                           title: Text(installment.month),
-                          subtitle: paid ? Text('Peye: ${dateFormat.format(installment.paidAt!)}') : null,
+                          subtitle: paid ? Text(l10n.paidOnLabel(dateFormat.format(installment.paidAt!))) : null,
                           trailing: Text(currency.format(installment.amount)),
                         );
                       },

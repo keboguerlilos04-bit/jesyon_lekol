@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import '../../core/models/assignment.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import 'async_error_view.dart';
 
 /// Read-only list of assignments/exams for one class, soonest due first —
 /// serves as the "kalandriye devwa" for parents and students alike.
@@ -19,10 +21,11 @@ class AssignmentsListView extends ConsumerWidget {
     return StreamBuilder<List<Assignment>>(
       stream: ref.watch(firestoreServiceProvider).watchAssignmentsByClass(classId),
       builder: (context, snapshot) {
+        if (snapshot.hasError) return AsyncErrorView(error: snapshot.error);
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final assignments = snapshot.data!;
         if (assignments.isEmpty) {
-          return const Center(child: Text('Pa gen devwa oswa egzamen pwograme.'));
+          return Center(child: Text(AppLocalizations.of(context)!.noScheduledAssignments));
         }
         return ListView.builder(
           itemCount: assignments.length,

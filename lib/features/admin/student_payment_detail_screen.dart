@@ -9,6 +9,7 @@ import '../../core/models/school_year.dart';
 import '../../core/models/student.dart';
 import '../../core/services/providers.dart';
 import '../../core/services/receipt_pdf.dart';
+import '../../l10n/app_localizations.dart';
 
 const _schoolName = 'Jesyon Lekòl';
 
@@ -20,17 +21,18 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
 
   Future<void> _editTotalDue(BuildContext context, WidgetRef ref, double currentTotal) async {
     final controller = TextEditingController(text: currentTotal > 0 ? currentTotal.toStringAsFixed(0) : '');
+    final l10n = AppLocalizations.of(context)!;
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Total pou Peye'),
+        title: Text(l10n.totalToPayTitle),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'Total (HTG) pou ane lekòl la'),
+          decoration: InputDecoration(labelText: l10n.totalAmountField),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anile')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           FilledButton(
             onPressed: () async {
               final total = double.tryParse(controller.text);
@@ -44,7 +46,7 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
                   );
               if (context.mounted) Navigator.pop(context);
             },
-            child: const Text('Sove'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -56,12 +58,13 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
     final monthController = TextEditingController();
     final amountController = TextEditingController();
     DateTime paidAt = DateTime.now();
+    final l10n = AppLocalizations.of(context)!;
 
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Anrejistre yon Vèsman'),
+          title: Text(l10n.recordInstallmentTitle),
           content: Form(
             key: formKey,
             child: Column(
@@ -69,20 +72,20 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
               children: [
                 TextFormField(
                   controller: monthController,
-                  decoration: const InputDecoration(labelText: 'Etikèt (eg: Septanm 2026)'),
-                  validator: (v) => (v == null || v.isEmpty) ? 'Obligatwa' : null,
+                  decoration: InputDecoration(labelText: l10n.monthField),
+                  validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: amountController,
-                  decoration: const InputDecoration(labelText: 'Montan Peye (HTG)'),
+                  decoration: InputDecoration(labelText: l10n.amountPaidField),
                   keyboardType: TextInputType.number,
-                  validator: (v) => double.tryParse(v ?? '') == null ? 'Montan envalid' : null,
+                  validator: (v) => double.tryParse(v ?? '') == null ? l10n.invalidAmount : null,
                 ),
                 const SizedBox(height: 12),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Dat Peman'),
+                  title: Text(l10n.paymentDateLabel),
                   subtitle: Text(DateFormat('dd/MM/yyyy').format(paidAt)),
                   trailing: const Icon(Icons.calendar_month),
                   onTap: () async {
@@ -99,7 +102,7 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anile')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
             FilledButton(
               onPressed: () async {
                 if (!formKey.currentState!.validate()) return;
@@ -120,7 +123,7 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
                   _offerReceipt(context, installment, updated, className);
                 }
               },
-              child: const Text('Anrejistre'),
+              child: Text(l10n.recordButton),
             ),
           ],
         ),
@@ -134,14 +137,15 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
     PaymentRecord payment,
     String className,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final print = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Vèsman anrejistre'),
-        content: const Text('Ou vle enprime/pataje resi a kounye a?'),
+        title: Text(l10n.installmentRecordedTitle),
+        content: Text(l10n.printReceiptPrompt),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Pita')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Enprime Resi')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.laterButton)),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.printReceiptButton)),
         ],
       ),
     );
@@ -168,6 +172,7 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currency = NumberFormat.currency(symbol: 'HTG ', decimalDigits: 0);
     final dateFormat = DateFormat('dd/MM/yyyy');
+    final l10n = AppLocalizations.of(context)!;
 
     return StreamBuilder<List<ClassModel>>(
       stream: ref.watch(firestoreServiceProvider).watchClassesByIds([student.classId]),
@@ -188,15 +193,15 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: Column(
                       children: [
-                        _summaryRow('Total pou Peye', currency.format(payment?.totalDue ?? 0)),
-                        _summaryRow('Deja Peye', currency.format(payment?.amountPaid ?? 0)),
+                        _summaryRow(l10n.totalToPayTitle, currency.format(payment?.totalDue ?? 0)),
+                        _summaryRow(l10n.alreadyPaidTitle, currency.format(payment?.amountPaid ?? 0)),
                         const Divider(),
-                        _summaryRow('Rès pou Peye', currency.format(payment?.balance ?? 0), emphasize: true),
+                        _summaryRow(l10n.remainingBalanceLower, currency.format(payment?.balance ?? 0), emphasize: true),
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
                           onPressed: () => _editTotalDue(context, ref, payment?.totalDue ?? 0),
                           icon: const Icon(Icons.edit),
-                          label: const Text('Modifye Total pou Peye'),
+                          label: Text(l10n.editTotalDueButton),
                         ),
                       ],
                     ),
@@ -204,7 +209,7 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
                   const Divider(height: 1),
                   Expanded(
                     child: (payment == null || payment.installments.isEmpty)
-                        ? const Center(child: Text('Pa gen vèsman anrejistre.'))
+                        ? Center(child: Text(l10n.noInstallments))
                         : ListView.builder(
                             itemCount: payment.installments.length,
                             itemBuilder: (context, i) {
@@ -213,7 +218,7 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
                                 leading: const Icon(Icons.check_circle, color: Colors.green),
                                 title: Text(installment.month),
                                 subtitle: installment.paidAt != null
-                                    ? Text('Peye: ${dateFormat.format(installment.paidAt!)}')
+                                    ? Text(l10n.paidOnLabel(dateFormat.format(installment.paidAt!)))
                                     : null,
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -221,7 +226,7 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
                                     Text(currency.format(installment.amount)),
                                     IconButton(
                                       icon: const Icon(Icons.print_outlined),
-                                      tooltip: 'Enprime Resi',
+                                      tooltip: l10n.printReceiptButton,
                                       onPressed: () => _printReceipt(installment, payment, className),
                                     ),
                                   ],
@@ -237,7 +242,7 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _addInstallment(context, ref, className),
             icon: const Icon(Icons.add),
-            label: const Text('Vèsman'),
+            label: Text(l10n.installmentFabLabel),
           ),
         );
       },

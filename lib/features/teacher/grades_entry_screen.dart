@@ -6,6 +6,8 @@ import '../../core/models/grade.dart';
 import '../../core/models/student.dart';
 import '../../core/models/subject.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import '../shared/async_error_view.dart';
 
 const _terms = ['T1', 'T2', 'T3'];
 const _types = ['devwa', 'egzamen', 'kontwol'];
@@ -86,8 +88,9 @@ class _GradesEntryScreenState extends ConsumerState<GradesEntryScreen> {
     try {
       await service.submitGradesBatch(grades);
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('${grades.length} nòt anrejistre.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.gradesRecorded(grades.length))),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -98,20 +101,21 @@ class _GradesEntryScreenState extends ConsumerState<GradesEntryScreen> {
   Widget build(BuildContext context) {
     final teacherProfileAsync = ref.watch(currentTeacherProfileProvider);
     final activeYearAsync = ref.watch(activeSchoolYearProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return teacherProfileAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Erè: $e')),
+      error: (e, _) => Center(child: Text(l10n.errorPrefix(e))),
       data: (profile) {
         if (profile == null || profile.classIds.isEmpty) {
-          return const Center(child: Text('Ou poko gen klas ki asiyen a ou.'));
+          return Center(child: Text(l10n.noAssignedClasses));
         }
         return activeYearAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Erè: $e')),
+          error: (e, _) => Center(child: Text(l10n.errorPrefix(e))),
           data: (year) {
             if (year == null) {
-              return const Center(child: Text('Pa gen ane lekòl aktif kounye a.'));
+              return Center(child: Text(l10n.noActiveSchoolYear));
             }
             return StreamBuilder<List<ClassModel>>(
               stream: ref.watch(firestoreServiceProvider).watchClassesByIds(profile.classIds),
@@ -141,7 +145,7 @@ class _GradesEntryScreenState extends ConsumerState<GradesEntryScreen> {
                                 width: 200,
                                 child: DropdownButtonFormField<String>(
                                   initialValue: _classId,
-                                  decoration: const InputDecoration(labelText: 'Klas'),
+                                  decoration: InputDecoration(labelText: l10n.classLabel),
                                   items: classes
                                       .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                                       .toList(),
@@ -155,7 +159,7 @@ class _GradesEntryScreenState extends ConsumerState<GradesEntryScreen> {
                                 width: 200,
                                 child: DropdownButtonFormField<String>(
                                   initialValue: _subjectId,
-                                  decoration: const InputDecoration(labelText: 'Matyè'),
+                                  decoration: InputDecoration(labelText: l10n.navSubjects),
                                   items: subjectsForClass
                                       .map((s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
                                       .toList(),
@@ -169,7 +173,7 @@ class _GradesEntryScreenState extends ConsumerState<GradesEntryScreen> {
                                 width: 100,
                                 child: DropdownButtonFormField<String>(
                                   initialValue: _term,
-                                  decoration: const InputDecoration(labelText: 'Peryòd'),
+                                  decoration: InputDecoration(labelText: l10n.termLabel),
                                   items: _terms.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                                   onChanged: (v) => setState(() {
                                     _term = v!;
@@ -181,7 +185,7 @@ class _GradesEntryScreenState extends ConsumerState<GradesEntryScreen> {
                                 width: 140,
                                 child: DropdownButtonFormField<String>(
                                   initialValue: _type,
-                                  decoration: const InputDecoration(labelText: 'Tip'),
+                                  decoration: InputDecoration(labelText: l10n.typeLabel),
                                   items: _types.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                                   onChanged: (v) => setState(() {
                                     _type = v!;
@@ -193,7 +197,7 @@ class _GradesEntryScreenState extends ConsumerState<GradesEntryScreen> {
                                 width: 100,
                                 child: TextField(
                                   controller: _maxValueController,
-                                  decoration: const InputDecoration(labelText: 'Sou (max)'),
+                                  decoration: InputDecoration(labelText: l10n.maxScoreField),
                                   keyboardType: TextInputType.number,
                                 ),
                               ),
@@ -203,7 +207,7 @@ class _GradesEntryScreenState extends ConsumerState<GradesEntryScreen> {
                         const Divider(height: 1),
                         Expanded(
                           child: _classId == null || _subjectId == null
-                              ? const Center(child: Text('Chwazi yon klas ak yon matyè.'))
+                              ? Center(child: Text(l10n.chooseClassAndSubject))
                               : _RosterGrid(
                                   classId: _classId!,
                                   subjectId: _subjectId!,
@@ -256,12 +260,14 @@ class _RosterGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return StreamBuilder<List<Student>>(
       stream: ref.watch(firestoreServiceProvider).watchStudentsByClass(classId),
       builder: (context, rosterSnap) {
+        if (rosterSnap.hasError) return AsyncErrorView(error: rosterSnap.error);
         if (!rosterSnap.hasData) return const Center(child: CircularProgressIndicator());
         final roster = rosterSnap.data!;
-        if (roster.isEmpty) return const Center(child: Text('Pa gen elèv nan klas sa a.'));
+        if (roster.isEmpty) return Center(child: Text(l10n.noStudentsInClass));
 
         return StreamBuilder<List<Grade>>(
           stream: ref.watch(firestoreServiceProvider).watchGradesForEvaluation(
@@ -295,7 +301,7 @@ class _RosterGrid extends ConsumerWidget {
                               child: TextField(
                                 controller: controller,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: const InputDecoration(isDense: true, hintText: 'Nòt'),
+                                decoration: InputDecoration(isDense: true, hintText: l10n.gradeHint),
                               ),
                             ),
                           ],
@@ -313,7 +319,7 @@ class _RosterGrid extends ConsumerWidget {
                       child: saving
                           ? const SizedBox(
                               height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Text('Anrejistre Nòt yo'),
+                          : Text(l10n.saveGradesButton),
                     ),
                   ),
                 ),

@@ -6,6 +6,8 @@ import '../../core/models/class_model.dart';
 import '../../core/models/message.dart';
 import '../../core/models/student.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import '../shared/async_error_view.dart';
 
 class TeacherMessagesScreen extends ConsumerStatefulWidget {
   const TeacherMessagesScreen({super.key});
@@ -24,12 +26,13 @@ class _TeacherMessagesScreenState extends ConsumerState<TeacherMessagesScreen> {
     final bodyController = TextEditingController();
     String? classId = classes.isEmpty ? null : classes.first.id;
     Student? selectedStudent;
+    final l10n = AppLocalizations.of(context)!;
 
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Nouvo Mesaj'),
+          title: Text(l10n.newMessageTitle),
           content: SizedBox(
             width: 420,
             child: Form(
@@ -40,7 +43,7 @@ class _TeacherMessagesScreenState extends ConsumerState<TeacherMessagesScreen> {
                   children: [
                     DropdownButtonFormField<String>(
                       initialValue: classId,
-                      decoration: const InputDecoration(labelText: 'Klas'),
+                      decoration: InputDecoration(labelText: l10n.classLabel),
                       items: classes.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
                       onChanged: (v) => setState(() {
                         classId = v;
@@ -56,7 +59,7 @@ class _TeacherMessagesScreenState extends ConsumerState<TeacherMessagesScreen> {
                           selectedStudent ??= roster.isEmpty ? null : roster.first;
                           return DropdownButtonFormField<Student>(
                             initialValue: selectedStudent,
-                            decoration: const InputDecoration(labelText: 'Elèv'),
+                            decoration: InputDecoration(labelText: l10n.studentField),
                             items: roster
                                 .map((s) => DropdownMenuItem(value: s, child: Text(s.fullName)))
                                 .toList(),
@@ -67,15 +70,15 @@ class _TeacherMessagesScreenState extends ConsumerState<TeacherMessagesScreen> {
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: titleController,
-                      decoration: const InputDecoration(labelText: 'Sijè'),
-                      validator: (v) => (v == null || v.isEmpty) ? 'Obligatwa' : null,
+                      decoration: InputDecoration(labelText: l10n.subjectField),
+                      validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: bodyController,
-                      decoration: const InputDecoration(labelText: 'Mesaj'),
+                      decoration: InputDecoration(labelText: l10n.messageField),
                       maxLines: 4,
-                      validator: (v) => (v == null || v.isEmpty) ? 'Obligatwa' : null,
+                      validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
                     ),
                   ],
                 ),
@@ -83,7 +86,7 @@ class _TeacherMessagesScreenState extends ConsumerState<TeacherMessagesScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anile')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
             FilledButton(
               onPressed: (classId == null || selectedStudent == null)
                   ? null
@@ -96,7 +99,7 @@ class _TeacherMessagesScreenState extends ConsumerState<TeacherMessagesScreen> {
                       }.toList();
                       if (recipientUids.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Elèv sa a pa gen kont paran/elèv ki lye.')),
+                          SnackBar(content: Text(l10n.noLinkedStudentAccount)),
                         );
                         return;
                       }
@@ -115,7 +118,7 @@ class _TeacherMessagesScreenState extends ConsumerState<TeacherMessagesScreen> {
                           );
                       if (context.mounted) Navigator.pop(context);
                     },
-              child: const Text('Voye'),
+              child: Text(l10n.sendButton),
             ),
           ],
         ),
@@ -128,15 +131,17 @@ class _TeacherMessagesScreenState extends ConsumerState<TeacherMessagesScreen> {
     final teacherUid = ref.watch(firebaseAuthProvider).currentUser?.uid ?? '';
     final teacherProfileAsync = ref.watch(currentTeacherProfileProvider);
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: StreamBuilder<List<Message>>(
         stream: ref.watch(firestoreServiceProvider).watchSentMessages(teacherUid),
         builder: (context, snapshot) {
+          if (snapshot.hasError) return AsyncErrorView(error: snapshot.error);
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final messages = snapshot.data!;
           if (messages.isEmpty) {
-            return const Center(child: Text('Poko gen mesaj voye. Peze + pou voye youn.'));
+            return Center(child: Text(l10n.noSentMessages));
           }
           return ListView.builder(
             itemCount: messages.length,
@@ -164,7 +169,7 @@ class _TeacherMessagesScreenState extends ConsumerState<TeacherMessagesScreen> {
               return FloatingActionButton(
                 onPressed: classes.isEmpty
                     ? () => ScaffoldMessenger.of(context)
-                        .showSnackBar(const SnackBar(content: Text('Ou poko gen klas ki asiyen a ou.')))
+                        .showSnackBar(SnackBar(content: Text(l10n.noAssignedClasses)))
                     : () => _openComposeForm(context, classes),
                 child: const Icon(Icons.edit),
               );

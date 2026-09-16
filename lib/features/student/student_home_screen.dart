@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/student.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
 import '../shared/assignments_list_view.dart';
+import '../shared/async_error_view.dart';
 import '../shared/attendance_summary_view.dart';
 import '../shared/grades_report_view.dart';
 import '../shared/notifications_view.dart';
@@ -19,51 +21,55 @@ class StudentHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final studentIdAsync = ref.watch(currentStudentIdProvider);
     final uid = ref.watch(firebaseAuthProvider).currentUser?.uid;
+    final l10n = AppLocalizations.of(context)!;
 
     return studentIdAsync.when(
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('Erè: $e'))),
+      error: (e, _) => Scaffold(body: Center(child: Text(l10n.errorPrefix(e)))),
       data: (studentId) {
         if (studentId == null) {
-          return const Scaffold(
-            body: Center(child: Text('Kont sa a pa lye ak yon dosye elèv.')),
+          return Scaffold(
+            body: Center(child: Text(l10n.noStudentLinked)),
           );
         }
         return StreamBuilder<Student?>(
           stream: ref.watch(firestoreServiceProvider).watchStudent(studentId),
           builder: (context, snapshot) {
             final student = snapshot.data;
+            if (snapshot.hasError) {
+              return Scaffold(body: AsyncErrorView(error: snapshot.error));
+            }
             if (!snapshot.hasData) {
               return const Scaffold(body: Center(child: CircularProgressIndicator()));
             }
             if (student == null) {
-              return const Scaffold(body: Center(child: Text('Dosye elèv la pa jwenn.')));
+              return Scaffold(body: Center(child: Text(l10n.studentRecordNotFound)));
             }
 
             final activeYearAsync = ref.watch(activeSchoolYearProvider);
 
             return activeYearAsync.when(
               loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-              error: (e, _) => Scaffold(body: Center(child: Text('Erè: $e'))),
+              error: (e, _) => Scaffold(body: Center(child: Text(l10n.errorPrefix(e)))),
               data: (year) {
                 if (year == null) {
-                  return const Scaffold(body: Center(child: Text('Pa gen ane lekòl aktif kounye a.')));
+                  return Scaffold(body: Center(child: Text(l10n.noActiveSchoolYear)));
                 }
                 return DefaultTabController(
                   length: 3,
                   child: Scaffold(
                     appBar: AppBar(
                       title: Text(student.fullName),
-                      bottom: const TabBar(tabs: [
-                        Tab(text: 'Bilten'),
-                        Tab(text: 'Prezans'),
-                        Tab(text: 'Devwa'),
+                      bottom: TabBar(tabs: [
+                        Tab(text: l10n.reportCardTab),
+                        Tab(text: l10n.navAttendance),
+                        Tab(text: l10n.navAssignments),
                       ]),
                       actions: [
                         if (uid != null)
                           IconButton(
                             icon: const Icon(Icons.notifications_outlined),
-                            tooltip: 'Notifikasyon',
+                            tooltip: l10n.notificationsTooltip,
                             onPressed: () => Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => NotificationsScreen(uid: uid)),

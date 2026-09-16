@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
 import 'attendance_screen.dart';
 import 'grades_entry_screen.dart';
 import 'teacher_assignments_screen.dart';
@@ -14,12 +15,12 @@ class _TeacherSection {
   final Widget screen;
 }
 
-final _sections = [
-  _TeacherSection('Nòt', Icons.grade_outlined, const GradesEntryScreen()),
-  _TeacherSection('Prezans', Icons.fact_check_outlined, const AttendanceScreen()),
-  _TeacherSection('Devwa', Icons.assignment_outlined, const TeacherAssignmentsScreen()),
-  _TeacherSection('Mesaj', Icons.mail_outline, const TeacherMessagesScreen()),
-];
+List<_TeacherSection> _sections(AppLocalizations l10n) => [
+      _TeacherSection(l10n.navGrades, Icons.grade_outlined, const GradesEntryScreen()),
+      _TeacherSection(l10n.navAttendance, Icons.fact_check_outlined, const AttendanceScreen()),
+      _TeacherSection(l10n.navAssignments, Icons.assignment_outlined, const TeacherAssignmentsScreen()),
+      _TeacherSection(l10n.navMessages, Icons.mail_outline, const TeacherMessagesScreen()),
+    ];
 
 /// Teacher dashboard shell. Every write these screens perform (grades,
 /// attendance, assignments, messages) is still bound by firestore.rules to
@@ -37,7 +38,8 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.sizeOf(context).width >= 720;
-    final current = _sections[_index];
+    final sections = _sections(AppLocalizations.of(context)!);
+    final current = sections[_index];
 
     if (isWide) {
       return Scaffold(
@@ -57,7 +59,7 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
               onDestinationSelected: (i) => setState(() => _index = i),
               labelType: NavigationRailLabelType.all,
               destinations: [
-                for (final s in _sections)
+                for (final s in sections)
                   NavigationRailDestination(icon: Icon(s.icon), label: Text(s.label)),
               ],
             ),
@@ -83,7 +85,7 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: [
-          for (final s in _sections) NavigationDestination(icon: Icon(s.icon), label: s.label),
+          for (final s in sections) NavigationDestination(icon: Icon(s.icon), label: s.label),
         ],
       ),
     );

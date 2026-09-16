@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/class_model.dart';
 import '../../core/models/subject.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import '../shared/async_error_view.dart';
 
 class SubjectsScreen extends ConsumerWidget {
   const SubjectsScreen({super.key});
@@ -18,36 +20,37 @@ class SubjectsScreen extends ConsumerWidget {
     final coefficientController =
         TextEditingController(text: existing?.coefficient.toString() ?? '1');
     String? classId = existing?.classId ?? classes.firstOrNull?.id;
+    final l10n = AppLocalizations.of(context)!;
 
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text(existing == null ? 'Nouvo Matyè' : 'Modifye Matyè'),
+          title: Text(existing == null ? l10n.newSubject : l10n.editSubject),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Non matyè (eg: Matematik)'),
+                decoration: InputDecoration(labelText: l10n.subjectNameField),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 initialValue: classId,
-                decoration: const InputDecoration(labelText: 'Klas'),
+                decoration: InputDecoration(labelText: l10n.classLabel),
                 items: classes.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
                 onChanged: (v) => setState(() => classId = v),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: coefficientController,
-                decoration: const InputDecoration(labelText: 'Kowefisyan'),
+                decoration: InputDecoration(labelText: l10n.coefficientField),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anile')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
             FilledButton(
               onPressed: classId == null
                   ? null
@@ -63,7 +66,7 @@ class SubjectsScreen extends ConsumerWidget {
                           );
                       if (context.mounted) Navigator.pop(context);
                     },
-              child: const Text('Sove'),
+              child: Text(l10n.save),
             ),
           ],
         ),
@@ -73,6 +76,7 @@ class SubjectsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: StreamBuilder<List<ClassModel>>(
         stream: ref.watch(firestoreServiceProvider).watchClasses(),
@@ -81,10 +85,11 @@ class SubjectsScreen extends ConsumerWidget {
           return StreamBuilder<List<Subject>>(
             stream: ref.watch(firestoreServiceProvider).watchSubjects(),
             builder: (context, snapshot) {
+              if (snapshot.hasError) return AsyncErrorView(error: snapshot.error);
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
               final subjects = snapshot.data!;
               if (subjects.isEmpty) {
-                return const Center(child: Text('Poko gen matyè. Peze + pou kreye youn.'));
+                return Center(child: Text(l10n.noSubjects));
               }
               return ListView.builder(
                 itemCount: subjects.length,
@@ -94,7 +99,7 @@ class SubjectsScreen extends ConsumerWidget {
                   return ListTile(
                     leading: const Icon(Icons.menu_book_outlined),
                     title: Text(s.name),
-                    subtitle: Text('Klas: $className • Kowefisyan: ${s.coefficient}'),
+                    subtitle: Text(l10n.subjectSubtitle(className, s.coefficient)),
                     trailing: PopupMenuButton<String>(
                       onSelected: (action) async {
                         if (action == 'edit') {
@@ -104,8 +109,8 @@ class SubjectsScreen extends ConsumerWidget {
                         }
                       },
                       itemBuilder: (context) => [
-                        const PopupMenuItem(value: 'edit', child: Text('Modifye')),
-                        const PopupMenuItem(value: 'delete', child: Text('Efase')),
+                        PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
+                        PopupMenuItem(value: 'delete', child: Text(l10n.delete)),
                       ],
                     ),
                   );
@@ -122,7 +127,7 @@ class SubjectsScreen extends ConsumerWidget {
           return FloatingActionButton(
             onPressed: classes.isEmpty
                 ? () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Kreye yon klas anvan.')),
+                      SnackBar(content: Text(l10n.createClassFirst)),
                     )
                 : () => _openForm(context, ref, classes),
             child: const Icon(Icons.add),

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/app_user.dart';
 import '../../core/models/user_role.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import '../shared/async_error_view.dart';
 
 class StaffScreen extends ConsumerWidget {
   const StaffScreen({super.key});
@@ -16,12 +18,13 @@ class StaffScreen extends ConsumerWidget {
     UserRole appRole = UserRole.teacher;
     bool submitting = false;
     String? error;
+    final l10n = AppLocalizations.of(context)!;
 
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Nouvo Anplwaye'),
+          title: Text(l10n.newStaffTitle),
           content: Form(
             key: formKey,
             child: Column(
@@ -29,28 +32,28 @@ class StaffScreen extends ConsumerWidget {
               children: [
                 TextFormField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Non konplè'),
-                  validator: (v) => (v == null || v.isEmpty) ? 'Obligatwa' : null,
+                  decoration: InputDecoration(labelText: l10n.fullNameField),
+                  validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: InputDecoration(labelText: l10n.email),
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) => (v == null || !v.contains('@')) ? 'Email envalid' : null,
+                  validator: (v) => (v == null || !v.contains('@')) ? l10n.invalidEmail : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: positionController,
-                  decoration: const InputDecoration(labelText: 'Pozisyon (eg: Sekretè Jeneral, Pwofesè Matematik)'),
+                  decoration: InputDecoration(labelText: l10n.positionField),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<UserRole>(
                   initialValue: appRole,
-                  decoration: const InputDecoration(labelText: 'Aksè nan aplikasyon an'),
-                  items: const [
-                    DropdownMenuItem(value: UserRole.teacher, child: Text('Pwofesè (nòt, prezans, devwa)')),
-                    DropdownMenuItem(value: UserRole.admin, child: Text('Admin (aksè konplè)')),
+                  decoration: InputDecoration(labelText: l10n.appAccessLabel),
+                  items: [
+                    DropdownMenuItem(value: UserRole.teacher, child: Text(l10n.roleTeacherOption)),
+                    DropdownMenuItem(value: UserRole.admin, child: Text(l10n.roleAdminOption)),
                   ],
                   onChanged: (v) => setState(() => appRole = v ?? UserRole.teacher),
                 ),
@@ -64,7 +67,7 @@ class StaffScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: submitting ? null : () => Navigator.pop(context),
-              child: const Text('Anile'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: submitting
@@ -90,14 +93,14 @@ class StaffScreen extends ConsumerWidget {
                         }
                       } catch (e) {
                         setState(() {
-                          error = 'Pa kapab kreye kont lan: $e';
+                          error = l10n.createAccountFailed(e);
                           submitting = false;
                         });
                       }
                     },
               child: submitting
                   ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Kreye Kont'),
+                  : Text(l10n.createAccountButton),
             ),
           ],
         ),
@@ -106,21 +109,22 @@ class StaffScreen extends ConsumerWidget {
   }
 
   Future<void> _showPasswordLinkDialog(BuildContext context, String link) {
+    final l10n = AppLocalizations.of(context)!;
     return showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Kont kreye'),
+        title: Text(l10n.accountCreatedTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Voye lyen sa a bay anplwaye a pou li defini modpas li:'),
+            Text(l10n.sendLinkToStaffBody),
             const SizedBox(height: 8),
             SelectableText(link),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fèmen')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.close)),
         ],
       ),
     );
@@ -128,14 +132,16 @@ class StaffScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: StreamBuilder<List<AppUser>>(
         stream: ref.watch(firestoreServiceProvider).watchStaff(),
         builder: (context, snapshot) {
+          if (snapshot.hasError) return AsyncErrorView(error: snapshot.error);
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final staff = snapshot.data!;
           if (staff.isEmpty) {
-            return const Center(child: Text('Poko gen anplwaye. Peze + pou ajoute youn.'));
+            return Center(child: Text(l10n.noStaff));
           }
           return ListView.builder(
             itemCount: staff.length,
@@ -145,7 +151,7 @@ class StaffScreen extends ConsumerWidget {
                 leading: CircleAvatar(child: Text(u.fullName.isNotEmpty ? u.fullName[0] : '?')),
                 title: Text(u.fullName),
                 subtitle: Text('${u.position ?? u.role.value} • ${u.email}'),
-                trailing: u.active ? null : const Chip(label: Text('Inaktif')),
+                trailing: u.active ? null : Chip(label: Text(l10n.inactiveChip)),
               );
             },
           );

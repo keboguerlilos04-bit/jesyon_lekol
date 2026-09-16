@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/class_model.dart';
 import '../../core/models/enrollment_request.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import '../shared/async_error_view.dart';
 
 class EnrollmentRequestsScreen extends ConsumerWidget {
   const EnrollmentRequestsScreen({super.key});
@@ -16,12 +18,13 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
     final parentEmailController = TextEditingController();
     final parentPhoneController = TextEditingController();
     String? classId = classes.isEmpty ? null : classes.first.id;
+    final l10n = AppLocalizations.of(context)!;
 
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Nouvo Demann Enskripsyon'),
+          title: Text(l10n.newEnrollmentTitle),
           content: SizedBox(
             width: 420,
             child: Form(
@@ -32,39 +35,39 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
                   children: [
                     TextFormField(
                       controller: firstNameController,
-                      decoration: const InputDecoration(labelText: 'Prenon elèv'),
-                      validator: (v) => (v == null || v.isEmpty) ? 'Obligatwa' : null,
+                      decoration: InputDecoration(labelText: l10n.studentFirstNameField),
+                      validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: lastNameController,
-                      decoration: const InputDecoration(labelText: 'Non fanmi elèv'),
-                      validator: (v) => (v == null || v.isEmpty) ? 'Obligatwa' : null,
+                      decoration: InputDecoration(labelText: l10n.studentLastNameField),
+                      validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       initialValue: classId,
-                      decoration: const InputDecoration(labelText: 'Klas'),
+                      decoration: InputDecoration(labelText: l10n.classLabel),
                       items: classes.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
                       onChanged: (v) => setState(() => classId = v),
                     ),
                     const Divider(height: 32),
                     TextFormField(
                       controller: parentNameController,
-                      decoration: const InputDecoration(labelText: 'Non konplè paran'),
-                      validator: (v) => (v == null || v.isEmpty) ? 'Obligatwa' : null,
+                      decoration: InputDecoration(labelText: l10n.parentFullNameField),
+                      validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: parentEmailController,
-                      decoration: const InputDecoration(labelText: 'Email paran'),
+                      decoration: InputDecoration(labelText: l10n.parentEmailField),
                       keyboardType: TextInputType.emailAddress,
-                      validator: (v) => (v == null || !v.contains('@')) ? 'Email envalid' : null,
+                      validator: (v) => (v == null || !v.contains('@')) ? l10n.invalidEmail : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: parentPhoneController,
-                      decoration: const InputDecoration(labelText: 'Telefòn paran (opsyonèl)'),
+                      decoration: InputDecoration(labelText: l10n.parentPhoneField),
                       keyboardType: TextInputType.phone,
                     ),
                   ],
@@ -73,7 +76,7 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anile')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
             FilledButton(
               onPressed: classId == null
                   ? null
@@ -96,7 +99,7 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
                           );
                       if (context.mounted) Navigator.pop(context);
                     },
-              child: const Text('Soumèt'),
+              child: Text(l10n.submitButton),
             ),
           ],
         ),
@@ -105,6 +108,7 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
   }
 
   Future<void> _approve(BuildContext context, WidgetRef ref, EnrollmentRequest request) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final result = await ref.read(functionsServiceProvider).approveEnrollment(request.id);
       if (!context.mounted) return;
@@ -112,31 +116,32 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
         await showDialog<void>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Enskripsyon apwouve'),
+            title: Text(l10n.enrollmentApprovedTitle),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Kont paran an kreye. Voye lyen sa a ba li pou li defini modpas li:'),
+                Text(l10n.parentAccountCreatedBody),
                 const SizedBox(height: 8),
                 SelectableText(result.passwordResetLink!),
               ],
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fèmen')),
+              TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.close)),
             ],
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erè: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorPrefix(e))));
       }
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -144,10 +149,10 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
           children: [
             Material(
               color: Theme.of(context).colorScheme.surface,
-              child: const TabBar(tabs: [
-                Tab(text: 'Annatant'),
-                Tab(text: 'Apwouve'),
-                Tab(text: 'Rejte'),
+              child: TabBar(tabs: [
+                Tab(text: l10n.pendingTab),
+                Tab(text: l10n.approvedTab),
+                Tab(text: l10n.rejectedTab),
               ]),
             ),
             Expanded(
@@ -168,7 +173,7 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
             return FloatingActionButton(
               onPressed: classes.isEmpty
                   ? () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Kreye yon klas anvan.')),
+                        SnackBar(content: Text(l10n.createClassFirst)),
                       )
                   : () => _openCreateForm(context, ref, classes),
               child: const Icon(Icons.add),
@@ -188,12 +193,14 @@ class _RequestList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return StreamBuilder<List<EnrollmentRequest>>(
       stream: ref.watch(firestoreServiceProvider).watchEnrollmentRequests(status: status),
       builder: (context, snapshot) {
+        if (snapshot.hasError) return AsyncErrorView(error: snapshot.error);
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final requests = snapshot.data!;
-        if (requests.isEmpty) return const Center(child: Text('Pa gen anyen isit la.'));
+        if (requests.isEmpty) return Center(child: Text(l10n.noRequests));
         return ListView.builder(
           itemCount: requests.length,
           itemBuilder: (context, i) {
@@ -201,19 +208,19 @@ class _RequestList extends ConsumerWidget {
             return ListTile(
               leading: const Icon(Icons.person_outline),
               title: Text('${r.studentFirstName} ${r.studentLastName}'),
-              subtitle: Text('Paran: ${r.parentFullName} • ${r.parentEmail}'),
+              subtitle: Text(l10n.parentSubtitle(r.parentFullName, r.parentEmail)),
               trailing: status == EnrollmentRequestStatus.pending
                   ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
                           icon: const Icon(Icons.close, color: Colors.red),
-                          tooltip: 'Rejte',
+                          tooltip: l10n.rejectTooltip,
                           onPressed: () => ref.read(firestoreServiceProvider).rejectEnrollmentRequest(r.id),
                         ),
                         IconButton(
                           icon: const Icon(Icons.check, color: Colors.green),
-                          tooltip: 'Apwouve',
+                          tooltip: l10n.approveTooltip,
                           onPressed: () => onApprove(context, ref, r),
                         ),
                       ],

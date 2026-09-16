@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/class_model.dart';
 import '../../core/models/school_year.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import '../shared/async_error_view.dart';
 
 class ClassesScreen extends ConsumerWidget {
   const ClassesScreen({super.key});
@@ -17,23 +19,24 @@ class ClassesScreen extends ConsumerWidget {
     final nameController = TextEditingController(text: existing?.name);
     final capacityController = TextEditingController(text: existing?.capacity.toString() ?? '');
     String? yearId = existing?.yearId ?? years.where((y) => y.active).firstOrNull?.id ?? years.firstOrNull?.id;
+    final l10n = AppLocalizations.of(context)!;
 
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text(existing == null ? 'Nouvo Klas' : 'Modifye Klas'),
+          title: Text(existing == null ? l10n.newClass : l10n.editClass),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Non klas (eg: 7èm AF)'),
+                decoration: InputDecoration(labelText: l10n.classNameField),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 initialValue: yearId,
-                decoration: const InputDecoration(labelText: 'Ane Lekòl'),
+                decoration: InputDecoration(labelText: l10n.navSchoolYears),
                 items: years
                     .map((y) => DropdownMenuItem(value: y.id, child: Text(y.label)))
                     .toList(),
@@ -42,13 +45,13 @@ class ClassesScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               TextField(
                 controller: capacityController,
-                decoration: const InputDecoration(labelText: 'Kapasite (opsyonèl)'),
+                decoration: InputDecoration(labelText: l10n.capacityField),
                 keyboardType: TextInputType.number,
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anile')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
             FilledButton(
               onPressed: yearId == null
                   ? null
@@ -65,7 +68,7 @@ class ClassesScreen extends ConsumerWidget {
                           );
                       if (context.mounted) Navigator.pop(context);
                     },
-              child: const Text('Sove'),
+              child: Text(l10n.save),
             ),
           ],
         ),
@@ -75,6 +78,7 @@ class ClassesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: StreamBuilder<List<SchoolYear>>(
         stream: ref.watch(firestoreServiceProvider).watchSchoolYears(),
@@ -83,10 +87,11 @@ class ClassesScreen extends ConsumerWidget {
           return StreamBuilder<List<ClassModel>>(
             stream: ref.watch(firestoreServiceProvider).watchClasses(),
             builder: (context, snapshot) {
+              if (snapshot.hasError) return AsyncErrorView(error: snapshot.error);
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
               final classes = snapshot.data!;
               if (classes.isEmpty) {
-                return const Center(child: Text('Poko gen klas. Peze + pou kreye youn.'));
+                return Center(child: Text(l10n.noClasses));
               }
               return ListView.builder(
                 itemCount: classes.length,
@@ -96,7 +101,9 @@ class ClassesScreen extends ConsumerWidget {
                   return ListTile(
                     leading: const Icon(Icons.class_outlined),
                     title: Text(c.name),
-                    subtitle: Text('Ane: $yearLabel${c.capacity > 0 ? ' • Kapasite: ${c.capacity}' : ''}'),
+                    subtitle: Text(c.capacity > 0
+                        ? l10n.classSubtitleYearCapacity(yearLabel, c.capacity)
+                        : l10n.classSubtitleYear(yearLabel)),
                     trailing: PopupMenuButton<String>(
                       onSelected: (action) async {
                         if (action == 'edit') {
@@ -106,8 +113,8 @@ class ClassesScreen extends ConsumerWidget {
                         }
                       },
                       itemBuilder: (context) => [
-                        const PopupMenuItem(value: 'edit', child: Text('Modifye')),
-                        const PopupMenuItem(value: 'delete', child: Text('Efase')),
+                        PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
+                        PopupMenuItem(value: 'delete', child: Text(l10n.delete)),
                       ],
                     ),
                   );
@@ -124,7 +131,7 @@ class ClassesScreen extends ConsumerWidget {
           return FloatingActionButton(
             onPressed: years.isEmpty
                 ? () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Kreye yon ane lekòl anvan.')),
+                      SnackBar(content: Text(l10n.createYearFirst)),
                     )
                 : () => _openForm(context, ref, years),
             child: const Icon(Icons.add),

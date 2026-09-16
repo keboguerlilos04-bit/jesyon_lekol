@@ -4,13 +4,15 @@ import 'package:intl/intl.dart';
 
 import '../../core/models/attendance_record.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import 'async_error_view.dart';
 
-const _statusLabels = {
-  AttendanceStatus.present: 'Prezan',
-  AttendanceStatus.absent: 'Absan',
-  AttendanceStatus.late: 'An reta',
-  AttendanceStatus.excused: 'Eskize',
-};
+Map<AttendanceStatus, String> _statusLabels(AppLocalizations l10n) => {
+      AttendanceStatus.present: l10n.statusPresent,
+      AttendanceStatus.absent: l10n.statusAbsent,
+      AttendanceStatus.late: l10n.statusLate,
+      AttendanceStatus.excused: l10n.statusExcused,
+    };
 
 const _statusColors = {
   AttendanceStatus.present: Colors.green,
@@ -29,13 +31,16 @@ class AttendanceSummaryView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('dd/MM/yyyy');
+    final l10n = AppLocalizations.of(context)!;
+    final statusLabels = _statusLabels(l10n);
     return StreamBuilder<List<AttendanceRecord>>(
       stream: ref.watch(firestoreServiceProvider).watchAttendanceForStudent(studentId),
       builder: (context, snapshot) {
+        if (snapshot.hasError) return AsyncErrorView(error: snapshot.error);
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final records = List.of(snapshot.data!)..sort((a, b) => b.date.compareTo(a.date));
         if (records.isEmpty) {
-          return const Center(child: Text('Poko gen dosye prezans.'));
+          return Center(child: Text(l10n.noAttendanceRecords));
         }
         final counts = {for (final s in AttendanceStatus.values) s: 0};
         for (final r in records) {
@@ -53,7 +58,7 @@ class AttendanceSummaryView extends ConsumerWidget {
                   for (final entry in counts.entries)
                     Chip(
                       avatar: CircleAvatar(backgroundColor: _statusColors[entry.key]),
-                      label: Text('${_statusLabels[entry.key]}: ${entry.value}'),
+                      label: Text(l10n.statusCountLabel(statusLabels[entry.key]!, entry.value)),
                     ),
                 ],
               ),
@@ -67,7 +72,7 @@ class AttendanceSummaryView extends ConsumerWidget {
                   return ListTile(
                     leading: Icon(Icons.circle, size: 12, color: _statusColors[r.status]),
                     title: Text(dateFormat.format(r.date)),
-                    trailing: Text(_statusLabels[r.status]!),
+                    trailing: Text(statusLabels[r.status]!),
                   );
                 },
               ),

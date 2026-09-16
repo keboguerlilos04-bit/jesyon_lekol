@@ -6,13 +6,15 @@ import '../../core/models/attendance_record.dart';
 import '../../core/models/class_model.dart';
 import '../../core/models/student.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import '../shared/async_error_view.dart';
 
-const _statusLabels = {
-  AttendanceStatus.present: 'Prezan',
-  AttendanceStatus.absent: 'Absan',
-  AttendanceStatus.late: 'An reta',
-  AttendanceStatus.excused: 'Eskize',
-};
+Map<AttendanceStatus, String> _statusLabels(AppLocalizations l10n) => {
+      AttendanceStatus.present: l10n.statusPresent,
+      AttendanceStatus.absent: l10n.statusAbsent,
+      AttendanceStatus.late: l10n.statusLate,
+      AttendanceStatus.excused: l10n.statusExcused,
+    };
 
 class AttendanceScreen extends ConsumerStatefulWidget {
   const AttendanceScreen({super.key});
@@ -73,8 +75,9 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Prezans anrejistre pou ${records.length} elèv.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.attendanceRecorded(records.length))),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -85,13 +88,14 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
   Widget build(BuildContext context) {
     final teacherProfileAsync = ref.watch(currentTeacherProfileProvider);
     final dateFormat = DateFormat('dd/MM/yyyy');
+    final l10n = AppLocalizations.of(context)!;
 
     return teacherProfileAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Erè: $e')),
+      error: (e, _) => Center(child: Text(l10n.errorPrefix(e))),
       data: (profile) {
         if (profile == null || profile.classIds.isEmpty) {
-          return const Center(child: Text('Ou poko gen klas ki asiyen a ou.'));
+          return Center(child: Text(l10n.noAssignedClasses));
         }
         return StreamBuilder<List<ClassModel>>(
           stream: ref.watch(firestoreServiceProvider).watchClassesByIds(profile.classIds),
@@ -112,7 +116,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                         width: 200,
                         child: DropdownButtonFormField<String>(
                           initialValue: _classId,
-                          decoration: const InputDecoration(labelText: 'Klas'),
+                          decoration: InputDecoration(labelText: l10n.classLabel),
                           items: classes.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
                           onChanged: (v) => setState(() {
                             _classId = v;
@@ -131,7 +135,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                 const Divider(height: 1),
                 Expanded(
                   child: _classId == null
-                      ? const Center(child: Text('Chwazi yon klas.'))
+                      ? Center(child: Text(l10n.chooseClass))
                       : _AttendanceRoster(
                           classId: _classId!,
                           date: _date,
@@ -177,12 +181,15 @@ class _AttendanceRosterState extends ConsumerState<_AttendanceRoster> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final statusLabels = _statusLabels(l10n);
     return StreamBuilder<List<Student>>(
       stream: ref.watch(firestoreServiceProvider).watchStudentsByClass(classId),
       builder: (context, rosterSnap) {
+        if (rosterSnap.hasError) return AsyncErrorView(error: rosterSnap.error);
         if (!rosterSnap.hasData) return const Center(child: CircularProgressIndicator());
         final roster = rosterSnap.data!;
-        if (roster.isEmpty) return const Center(child: Text('Pa gen elèv nan klas sa a.'));
+        if (roster.isEmpty) return Center(child: Text(l10n.noStudentsInClass));
 
         return StreamBuilder<List<AttendanceRecord>>(
           stream: ref.watch(firestoreServiceProvider).watchAttendanceForClassDate(classId, date),
@@ -207,7 +214,7 @@ class _AttendanceRosterState extends ConsumerState<_AttendanceRoster> {
                             DropdownButton<AttendanceStatus>(
                               value: status,
                               items: AttendanceStatus.values
-                                  .map((s) => DropdownMenuItem(value: s, child: Text(_statusLabels[s]!)))
+                                  .map((s) => DropdownMenuItem(value: s, child: Text(statusLabels[s]!)))
                                   .toList(),
                               onChanged: (v) {
                                 if (v != null) {
@@ -230,7 +237,7 @@ class _AttendanceRosterState extends ConsumerState<_AttendanceRoster> {
                       child: saving
                           ? const SizedBox(
                               height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Text('Anrejistre Prezans'),
+                          : Text(l10n.saveAttendanceButton),
                     ),
                   ),
                 ),

@@ -8,6 +8,8 @@ import '../../core/models/subject.dart';
 import '../../core/services/grade_calculator.dart';
 import '../../core/services/providers.dart';
 import '../../core/services/report_card_pdf.dart';
+import '../../l10n/app_localizations.dart';
+import 'async_error_view.dart';
 
 const _terms = ['T1', 'T2', 'T3'];
 const _schoolName = 'Jesyon Lekòl';
@@ -41,6 +43,7 @@ class _GradesReportViewState extends ConsumerState<GradesReportView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         Padding(
@@ -68,6 +71,8 @@ class _GradesReportViewState extends ConsumerState<GradesReportView> {
                           term: _term,
                         ),
                     builder: (context, gradeSnap) {
+                      if (subjectSnap.hasError) return AsyncErrorView(error: subjectSnap.error);
+                      if (gradeSnap.hasError) return AsyncErrorView(error: gradeSnap.error);
                       if (!subjectSnap.hasData || !gradeSnap.hasData) {
                         return const Center(child: CircularProgressIndicator());
                       }
@@ -103,7 +108,7 @@ class _GradesReportViewState extends ConsumerState<GradesReportView> {
                                         )
                                     : null,
                                 icon: const Icon(Icons.picture_as_pdf_outlined),
-                                label: const Text('Ekspòte Bilten PDF'),
+                                label: Text(l10n.exportReportCardButton),
                               ),
                             ),
                           ),
@@ -115,7 +120,7 @@ class _GradesReportViewState extends ConsumerState<GradesReportView> {
                                 return ListTile(
                                   title: Text(s.subjectName),
                                   subtitle: s.entries.isEmpty
-                                      ? const Text('Poko gen nòt')
+                                      ? Text(l10n.notGradedYet)
                                       : Text(s.entries
                                           .map((g) => '${g.type.value}: ${g.value.toStringAsFixed(0)}/${g.maxValue.toStringAsFixed(0)}')
                                           .join(' • ')),
@@ -133,8 +138,8 @@ class _GradesReportViewState extends ConsumerState<GradesReportView> {
                             color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             child: Text(
                               overall != null
-                                  ? 'Mwayèn Jeneral ($_term): ${overall.toStringAsFixed(1)}/100'
-                                  : 'Poko gen nòt pou $_term',
+                                  ? l10n.overallAverageLabel(_term, overall.toStringAsFixed(1))
+                                  : l10n.noGradesForTerm(_term),
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                               textAlign: TextAlign.center,
                             ),

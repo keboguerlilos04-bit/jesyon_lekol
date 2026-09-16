@@ -6,6 +6,8 @@ import '../../core/models/class_model.dart';
 import '../../core/models/payment_record.dart';
 import '../../core/models/student.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import '../shared/async_error_view.dart';
 import 'student_payment_detail_screen.dart';
 
 /// Admin/secretary view of every student's fee balance for the active
@@ -25,24 +27,25 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   Widget build(BuildContext context) {
     final activeYearAsync = ref.watch(activeSchoolYearProvider);
     final currency = NumberFormat.currency(symbol: 'HTG ', decimalDigits: 0);
+    final l10n = AppLocalizations.of(context)!;
 
     return activeYearAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Erè: $e')),
+      error: (e, _) => Center(child: Text(l10n.errorPrefix(e))),
       data: (year) {
         if (year == null) {
-          return const Center(child: Text('Pa gen ane lekòl aktif kounye a.'));
+          return Center(child: Text(l10n.noActiveSchoolYear));
         }
         return Column(
           children: [
             Padding(
               padding: const EdgeInsets.all(12),
               child: TextField(
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  hintText: 'Chèche yon elèv...',
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: l10n.searchStudentHint,
                   isDense: true,
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 onChanged: (v) => setState(() => _search = v.trim().toLowerCase()),
               ),
@@ -59,6 +62,9 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       return StreamBuilder<List<PaymentRecord>>(
                         stream: ref.watch(firestoreServiceProvider).watchPaymentsForYear(year.id),
                         builder: (context, paymentSnap) {
+                          if (studentSnap.hasError) return AsyncErrorView(error: studentSnap.error);
+                          if (classSnap.hasError) return AsyncErrorView(error: classSnap.error);
+                          if (paymentSnap.hasError) return AsyncErrorView(error: paymentSnap.error);
                           if (!studentSnap.hasData || !paymentSnap.hasData) {
                             return const Center(child: CircularProgressIndicator());
                           }
@@ -72,7 +78,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                               .toList();
 
                           if (visible.isEmpty) {
-                            return const Center(child: Text('Pa gen elèv ki koresponn.'));
+                            return Center(child: Text(l10n.noMatchingStudents));
                           }
 
                           return ListView.builder(
@@ -86,9 +92,9 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                 title: Text(student.fullName),
                                 subtitle: Text(classes[student.classId] ?? student.classId),
                                 trailing: balance == null
-                                    ? const Chip(label: Text('Poko konfigire'))
+                                    ? Chip(label: Text(l10n.notConfiguredChip))
                                     : Text(
-                                        balance <= 0 ? 'Peye' : currency.format(balance),
+                                        balance <= 0 ? l10n.paidLabel : currency.format(balance),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: balance <= 0 ? Colors.green : Colors.red,

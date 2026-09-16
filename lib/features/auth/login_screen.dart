@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -37,7 +38,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           );
       // Navigation happens via the router's redirect once authStateProvider emits.
     } catch (e) {
-      setState(() => _error = 'Email oswa modpas la pa kòrèk.');
+      setState(() => _error = AppLocalizations.of(context)!.loginIncorrect);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -45,6 +46,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
@@ -56,20 +58,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Jesyon Lekòl', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                  Text(l10n.appName, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _emailController,
-                    decoration: const InputDecoration(labelText: 'Email'),
+                    decoration: InputDecoration(labelText: l10n.email),
                     keyboardType: TextInputType.emailAddress,
-                    validator: (v) => (v == null || v.isEmpty) ? 'Antre email ou' : null,
+                    validator: (v) => (v == null || v.isEmpty) ? l10n.enterYourEmail : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Modpas'),
+                    decoration: InputDecoration(labelText: l10n.password),
                     obscureText: true,
-                    validator: (v) => (v == null || v.isEmpty) ? 'Antre modpas ou' : null,
+                    validator: (v) => (v == null || v.isEmpty) ? l10n.enterYourPassword : null,
                   ),
                   const SizedBox(height: 24),
                   if (_error != null) ...[
@@ -86,7 +88,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Konekte'),
+                          : Text(l10n.loginButton),
                     ),
                   ),
                 ],

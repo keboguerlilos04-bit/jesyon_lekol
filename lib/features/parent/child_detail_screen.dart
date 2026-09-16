@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/student.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
 import '../shared/assignments_list_view.dart';
 import '../shared/attendance_summary_view.dart';
 import '../shared/grades_report_view.dart';
@@ -20,6 +21,7 @@ class ChildDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeYearAsync = ref.watch(activeSchoolYearProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return activeYearAsync.when(
       loading: () => Scaffold(
@@ -28,13 +30,13 @@ class ChildDetailScreen extends ConsumerWidget {
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: Text(student.fullName)),
-        body: Center(child: Text('Erè: $e')),
+        body: Center(child: Text(l10n.errorPrefix(e))),
       ),
       data: (year) {
         if (year == null) {
           return Scaffold(
             appBar: AppBar(title: Text(student.fullName)),
-            body: const Center(child: Text('Pa gen ane lekòl aktif kounye a.')),
+            body: Center(child: Text(l10n.noActiveSchoolYear)),
           );
         }
         return DefaultTabController(
@@ -42,11 +44,11 @@ class ChildDetailScreen extends ConsumerWidget {
           child: Scaffold(
             appBar: AppBar(
               title: Text(student.fullName),
-              bottom: const TabBar(tabs: [
-                Tab(text: 'Bilten'),
-                Tab(text: 'Prezans'),
-                Tab(text: 'Devwa'),
-                Tab(text: 'Frè'),
+              bottom: TabBar(tabs: [
+                Tab(text: l10n.reportCardTab),
+                Tab(text: l10n.navAttendance),
+                Tab(text: l10n.navAssignments),
+                Tab(text: l10n.feesTab),
               ]),
             ),
             body: TabBarView(

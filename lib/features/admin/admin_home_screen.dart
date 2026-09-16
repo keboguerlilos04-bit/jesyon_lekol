@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
 import 'classes_screen.dart';
 import 'enrollment_requests_screen.dart';
 import 'finance_screen.dart';
@@ -16,14 +17,14 @@ class _AdminSection {
   final Widget screen;
 }
 
-final _sections = [
-  _AdminSection('Ane Lekòl', Icons.calendar_today, const SchoolYearsScreen()),
-  _AdminSection('Klas', Icons.class_outlined, const ClassesScreen()),
-  _AdminSection('Matyè', Icons.menu_book_outlined, const SubjectsScreen()),
-  _AdminSection('Anplwaye', Icons.people_outline, const StaffScreen()),
-  _AdminSection('Enskripsyon', Icons.how_to_reg_outlined, const EnrollmentRequestsScreen()),
-  _AdminSection('Finans', Icons.payments_outlined, const FinanceScreen()),
-];
+List<_AdminSection> _sections(AppLocalizations l10n) => [
+      _AdminSection(l10n.navSchoolYears, Icons.calendar_today, const SchoolYearsScreen()),
+      _AdminSection(l10n.classLabel, Icons.class_outlined, const ClassesScreen()),
+      _AdminSection(l10n.navSubjects, Icons.menu_book_outlined, const SubjectsScreen()),
+      _AdminSection(l10n.navStaff, Icons.people_outline, const StaffScreen()),
+      _AdminSection(l10n.navEnrollment, Icons.how_to_reg_outlined, const EnrollmentRequestsScreen()),
+      _AdminSection(l10n.navFinance, Icons.payments_outlined, const FinanceScreen()),
+    ];
 
 /// Admin dashboard shell: a role-scoped tab switcher (not deep-linked —
 /// acceptable for an internal back-office section) between the five admin
@@ -42,7 +43,8 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.sizeOf(context).width >= 720;
-    final current = _sections[_index];
+    final sections = _sections(AppLocalizations.of(context)!);
+    final current = sections[_index];
 
     final body = current.screen;
 
@@ -64,7 +66,7 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
               onDestinationSelected: (i) => setState(() => _index = i),
               labelType: NavigationRailLabelType.all,
               destinations: [
-                for (final s in _sections)
+                for (final s in sections)
                   NavigationRailDestination(icon: Icon(s.icon), label: Text(s.label)),
               ],
             ),
@@ -90,7 +92,7 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: [
-          for (final s in _sections) NavigationDestination(icon: Icon(s.icon), label: s.label),
+          for (final s in sections) NavigationDestination(icon: Icon(s.icon), label: s.label),
         ],
       ),
     );

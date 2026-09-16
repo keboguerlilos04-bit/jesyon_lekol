@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import '../../core/models/app_notification.dart';
 import '../../core/services/providers.dart';
+import '../../l10n/app_localizations.dart';
+import 'async_error_view.dart';
 
 const _typeIcons = {
   NotificationType.absence: Icons.event_busy,
@@ -20,15 +22,17 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifikasyon')),
+      appBar: AppBar(title: Text(l10n.notificationsTitle)),
       body: StreamBuilder<List<AppNotification>>(
         stream: ref.watch(firestoreServiceProvider).watchNotifications(uid),
         builder: (context, snapshot) {
+          if (snapshot.hasError) return AsyncErrorView(error: snapshot.error);
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           final notifications = snapshot.data!;
           if (notifications.isEmpty) {
-            return const Center(child: Text('Pa gen notifikasyon.'));
+            return Center(child: Text(l10n.noNotifications));
           }
           return ListView.builder(
             itemCount: notifications.length,
