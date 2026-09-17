@@ -171,5 +171,36 @@
 
   "noFeeInfo": "No fee information yet for this school year.",
 
-  "loadErrorMessage": "Couldn't load the data.\n{error}"
+  "loadErrorMessage": "Couldn't load the data.\n{error}",
+
+  "reloginRequired": "Please sign out and back in before changing your password.",
+  "mustChangePasswordTitle": "Change Your Password",
+  "mustChangePasswordBody": "This is your first sign-in. Please choose a new password before continuing.",
+  "newPasswordField": "New Password",
+  "passwordTooShort": "Password must be at least 6 characters",
+  "confirmPasswordField": "Confirm Password",
+  "passwordsDontMatch": "Passwords don't match",
+  "changePasswordButton": "Change Password",
+
+  "sendTempPasswordBody": "Give this information to the employee for their first sign-in. The app will require them to change the password immediately.",
+  "temporaryPasswordLabel": "Temporary Password",
+
+  "studentEmailOptionalField": "Student email (optional, for the student's own account)",
+  "addSecondParentToggle": "Add a second parent",
+  "parent2FullNameField": "Second parent's full name",
+  "parent2EmailField": "Second parent's email",
+  "newAccountsCreatedBody": "These accounts were created. Give each person their own information for their first sign-in. The app will require them to change the password immediately.",
+  "parentRoleLabel": "Parent",
+  "accountAlreadyExisted": "This account already existed — no new password.",
+
+  "myProfileTitle": "My Profile",
+  "requestChangeTitle": "Request a change: {field}",
+  "newValueField": "New value",
+  "changeRequestSent": "Change request sent to the Admin for approval.",
+  "sexField": "Sex",
+  "myChangeRequestsTitle": "My Change Requests",
+  "requestChangeTooltip": "Request a change",
+
+  "changeApplied": "Change applied.",
+  "navChangeRequests": "Change Requests"
 }

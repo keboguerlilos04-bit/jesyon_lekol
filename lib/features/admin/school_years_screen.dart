@@ -22,45 +22,47 @@ class SchoolYearsScreen extends ConsumerWidget {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(existing == null ? l10n.newSchoolYear : l10n.editSchoolYear),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: labelController,
-                decoration: InputDecoration(labelText: l10n.yearLabelField),
-              ),
-              const SizedBox(height: 12),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.startDateLabel),
-                subtitle: Text(dateFormat.format(start)),
-                trailing: const Icon(Icons.calendar_month),
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: start,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2100),
-                  );
-                  if (picked != null) setState(() => start = picked);
-                },
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.endDateLabel),
-                subtitle: Text(dateFormat.format(end)),
-                trailing: const Icon(Icons.calendar_month),
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: end,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2100),
-                  );
-                  if (picked != null) setState(() => end = picked);
-                },
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: labelController,
+                  decoration: InputDecoration(labelText: l10n.yearLabelField),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.startDateLabel),
+                  subtitle: Text(dateFormat.format(start)),
+                  trailing: const Icon(Icons.calendar_month),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: start,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) setState(() => start = picked);
+                  },
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.endDateLabel),
+                  subtitle: Text(dateFormat.format(end)),
+                  trailing: const Icon(Icons.calendar_month),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: end,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) setState(() => end = picked);
+                  },
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),

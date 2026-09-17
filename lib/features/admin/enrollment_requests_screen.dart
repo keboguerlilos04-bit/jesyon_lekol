@@ -14,10 +14,15 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
     final formKey = GlobalKey<FormState>();
     final firstNameController = TextEditingController();
     final lastNameController = TextEditingController();
+    final studentEmailController = TextEditingController();
     final parentNameController = TextEditingController();
     final parentEmailController = TextEditingController();
     final parentPhoneController = TextEditingController();
+    final parent2NameController = TextEditingController();
+    final parent2EmailController = TextEditingController();
+    final parent2PhoneController = TextEditingController();
     String? classId = classes.isEmpty ? null : classes.first.id;
+    bool addSecondParent = false;
     final l10n = AppLocalizations.of(context)!;
 
     await showDialog<void>(
@@ -47,9 +52,20 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       initialValue: classId,
+                      isExpanded: true,
                       decoration: InputDecoration(labelText: l10n.classLabel),
-                      items: classes.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+                      items: classes
+                          .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis)))
+                          .toList(),
                       onChanged: (v) => setState(() => classId = v),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: studentEmailController,
+                      decoration: InputDecoration(labelText: l10n.studentEmailOptionalField),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) =>
+                          (v != null && v.isNotEmpty && !v.contains('@')) ? l10n.invalidEmail : null,
                     ),
                     const Divider(height: 32),
                     TextFormField(
@@ -70,6 +86,35 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
                       decoration: InputDecoration(labelText: l10n.parentPhoneField),
                       keyboardType: TextInputType.phone,
                     ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(l10n.addSecondParentToggle),
+                      value: addSecondParent,
+                      onChanged: (v) => setState(() => addSecondParent = v),
+                    ),
+                    if (addSecondParent) ...[
+                      TextFormField(
+                        controller: parent2NameController,
+                        decoration: InputDecoration(labelText: l10n.parent2FullNameField),
+                        validator: (v) =>
+                            (addSecondParent && (v == null || v.isEmpty)) ? l10n.required : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: parent2EmailController,
+                        decoration: InputDecoration(labelText: l10n.parent2EmailField),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (v) => (addSecondParent && (v == null || !v.contains('@')))
+                            ? l10n.invalidEmail
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: parent2PhoneController,
+                        decoration: InputDecoration(labelText: l10n.parentPhoneField),
+                        keyboardType: TextInputType.phone,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -90,11 +135,19 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
                               studentFirstName: firstNameController.text.trim(),
                               studentLastName: lastNameController.text.trim(),
                               classId: classId!,
+                              studentEmail: studentEmailController.text.trim().isEmpty
+                                  ? null
+                                  : studentEmailController.text.trim(),
                               parentFullName: parentNameController.text.trim(),
                               parentEmail: parentEmailController.text.trim(),
                               parentPhone: parentPhoneController.text.trim().isEmpty
                                   ? null
                                   : parentPhoneController.text.trim(),
+                              parent2FullName: addSecondParent ? parent2NameController.text.trim() : null,
+                              parent2Email: addSecondParent ? parent2EmailController.text.trim() : null,
+                              parent2Phone: addSecondParent && parent2PhoneController.text.trim().isNotEmpty
+                                  ? parent2PhoneController.text.trim()
+                                  : null,
                             ),
                           );
                       if (context.mounted) Navigator.pop(context);
@@ -112,19 +165,34 @@ class EnrollmentRequestsScreen extends ConsumerWidget {
     try {
       final result = await ref.read(functionsServiceProvider).approveEnrollment(request.id);
       if (!context.mounted) return;
-      if (result.passwordResetLink != null) {
+      if (result.accounts.isNotEmpty) {
         await showDialog<void>(
           context: context,
           builder: (context) => AlertDialog(
             title: Text(l10n.enrollmentApprovedTitle),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.parentAccountCreatedBody),
-                const SizedBox(height: 8),
-                SelectableText(result.passwordResetLink!),
-              ],
+            content: SizedBox(
+              width: 420,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.newAccountsCreatedBody),
+                    for (final account in result.accounts) ...[
+                      const Divider(height: 24),
+                      Text(
+                        account.role == 'student' ? l10n.studentField : l10n.parentRoleLabel,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      SelectableText('${l10n.email}: ${account.email}'),
+                      if (account.tempPassword != null)
+                        SelectableText('${l10n.temporaryPasswordLabel}: ${account.tempPassword}')
+                      else
+                        Text(l10n.accountAlreadyExisted, style: const TextStyle(fontStyle: FontStyle.italic)),
+                    ],
+                  ],
+                ),
+              ),
             ),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.close)),

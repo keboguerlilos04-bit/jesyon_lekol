@@ -5,6 +5,7 @@ import '../../core/models/student.dart';
 import '../../core/services/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../shared/async_error_view.dart';
+import '../shared/my_profile_screen.dart';
 import '../shared/notifications_view.dart';
 import 'child_detail_screen.dart';
 
@@ -33,6 +34,14 @@ class ParentHomeScreen extends ConsumerWidget {
                 MaterialPageRoute(builder: (_) => NotificationsScreen(uid: uid)),
               ),
             ),
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            tooltip: l10n.myProfileTitle,
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MyProfileScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => ref.read(authServiceProvider).signOut(),

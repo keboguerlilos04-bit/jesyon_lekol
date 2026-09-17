@@ -501,4 +501,92 @@ class AppLocalizationsFr extends AppLocalizations {
   String loadErrorMessage(Object error) {
     return 'Impossible de charger les données.\n$error';
   }
+
+  @override
+  String get reloginRequired =>
+      'Veuillez vous déconnecter puis vous reconnecter avant de changer le mot de passe.';
+
+  @override
+  String get mustChangePasswordTitle => 'Changez Votre Mot de Passe';
+
+  @override
+  String get mustChangePasswordBody =>
+      'C\'est votre première connexion. Veuillez choisir un nouveau mot de passe avant de continuer.';
+
+  @override
+  String get newPasswordField => 'Nouveau Mot de Passe';
+
+  @override
+  String get passwordTooShort =>
+      'Le mot de passe doit comporter au moins 6 caractères';
+
+  @override
+  String get confirmPasswordField => 'Confirmer le Mot de Passe';
+
+  @override
+  String get passwordsDontMatch => 'Les mots de passe ne correspondent pas';
+
+  @override
+  String get changePasswordButton => 'Changer le Mot de Passe';
+
+  @override
+  String get sendTempPasswordBody =>
+      'Donnez ces informations à l\'employé pour sa première connexion. L\'application lui demandera de changer le mot de passe immédiatement.';
+
+  @override
+  String get temporaryPasswordLabel => 'Mot de Passe Temporaire';
+
+  @override
+  String get studentEmailOptionalField =>
+      'Email de l\'élève (optionnel, pour son propre compte)';
+
+  @override
+  String get addSecondParentToggle => 'Ajouter un deuxième parent';
+
+  @override
+  String get parent2FullNameField => 'Nom complet du deuxième parent';
+
+  @override
+  String get parent2EmailField => 'Email du deuxième parent';
+
+  @override
+  String get newAccountsCreatedBody =>
+      'Ces comptes ont été créés. Donnez à chacun ses informations pour la première connexion. L\'application leur demandera de changer le mot de passe immédiatement.';
+
+  @override
+  String get parentRoleLabel => 'Parent';
+
+  @override
+  String get accountAlreadyExisted =>
+      'Ce compte existait déjà — pas de nouveau mot de passe.';
+
+  @override
+  String get myProfileTitle => 'Mon Profil';
+
+  @override
+  String requestChangeTitle(Object field) {
+    return 'Demander un changement : $field';
+  }
+
+  @override
+  String get newValueField => 'Nouvelle valeur';
+
+  @override
+  String get changeRequestSent =>
+      'Demande de changement envoyée à l\'Admin pour approbation.';
+
+  @override
+  String get sexField => 'Sexe';
+
+  @override
+  String get myChangeRequestsTitle => 'Mes Demandes de Changement';
+
+  @override
+  String get requestChangeTooltip => 'Demander un changement';
+
+  @override
+  String get changeApplied => 'Changement appliqué.';
+
+  @override
+  String get navChangeRequests => 'Demandes de Changement';
 }

@@ -171,5 +171,36 @@
 
   "noFeeInfo": "Pas encore d'informations de frais pour cette année scolaire.",
 
-  "loadErrorMessage": "Impossible de charger les données.\n{error}"
+  "loadErrorMessage": "Impossible de charger les données.\n{error}",
+
+  "reloginRequired": "Veuillez vous déconnecter puis vous reconnecter avant de changer le mot de passe.",
+  "mustChangePasswordTitle": "Changez Votre Mot de Passe",
+  "mustChangePasswordBody": "C'est votre première connexion. Veuillez choisir un nouveau mot de passe avant de continuer.",
+  "newPasswordField": "Nouveau Mot de Passe",
+  "passwordTooShort": "Le mot de passe doit comporter au moins 6 caractères",
+  "confirmPasswordField": "Confirmer le Mot de Passe",
+  "passwordsDontMatch": "Les mots de passe ne correspondent pas",
+  "changePasswordButton": "Changer le Mot de Passe",
+
+  "sendTempPasswordBody": "Donnez ces informations à l'employé pour sa première connexion. L'application lui demandera de changer le mot de passe immédiatement.",
+  "temporaryPasswordLabel": "Mot de Passe Temporaire",
+
+  "studentEmailOptionalField": "Email de l'élève (optionnel, pour son propre compte)",
+  "addSecondParentToggle": "Ajouter un deuxième parent",
+  "parent2FullNameField": "Nom complet du deuxième parent",
+  "parent2EmailField": "Email du deuxième parent",
+  "newAccountsCreatedBody": "Ces comptes ont été créés. Donnez à chacun ses informations pour la première connexion. L'application leur demandera de changer le mot de passe immédiatement.",
+  "parentRoleLabel": "Parent",
+  "accountAlreadyExisted": "Ce compte existait déjà — pas de nouveau mot de passe.",
+
+  "myProfileTitle": "Mon Profil",
+  "requestChangeTitle": "Demander un changement : {field}",
+  "newValueField": "Nouvelle valeur",
+  "changeRequestSent": "Demande de changement envoyée à l'Admin pour approbation.",
+  "sexField": "Sexe",
+  "myChangeRequestsTitle": "Mes Demandes de Changement",
+  "requestChangeTooltip": "Demander un changement",
+
+  "changeApplied": "Changement appliqué.",
+  "navChangeRequests": "Demandes de Changement"
 }

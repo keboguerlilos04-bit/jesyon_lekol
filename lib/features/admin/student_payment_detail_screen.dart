@@ -65,40 +65,42 @@ class StudentPaymentDetailScreen extends ConsumerWidget {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(l10n.recordInstallmentTitle),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: monthController,
-                  decoration: InputDecoration(labelText: l10n.monthField),
-                  validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: amountController,
-                  decoration: InputDecoration(labelText: l10n.amountPaidField),
-                  keyboardType: TextInputType.number,
-                  validator: (v) => double.tryParse(v ?? '') == null ? l10n.invalidAmount : null,
-                ),
-                const SizedBox(height: 12),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(l10n.paymentDateLabel),
-                  subtitle: Text(DateFormat('dd/MM/yyyy').format(paidAt)),
-                  trailing: const Icon(Icons.calendar_month),
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: paidAt,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2100),
-                    );
-                    if (picked != null) setState(() => paidAt = picked);
-                  },
-                ),
-              ],
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: monthController,
+                    decoration: InputDecoration(labelText: l10n.monthField),
+                    validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: amountController,
+                    decoration: InputDecoration(labelText: l10n.amountPaidField),
+                    keyboardType: TextInputType.number,
+                    validator: (v) => double.tryParse(v ?? '') == null ? l10n.invalidAmount : null,
+                  ),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.paymentDateLabel),
+                    subtitle: Text(DateFormat('dd/MM/yyyy').format(paidAt)),
+                    trailing: const Icon(Icons.calendar_month),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: paidAt,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) setState(() => paidAt = picked);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [

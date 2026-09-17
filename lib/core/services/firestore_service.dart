@@ -9,6 +9,7 @@ import '../models/enrollment_request.dart';
 import '../models/grade.dart';
 import '../models/message.dart';
 import '../models/payment_record.dart';
+import '../models/profile_change_request.dart';
 import '../models/school_year.dart';
 import '../models/student.dart';
 import '../models/subject.dart';
@@ -450,6 +451,64 @@ class FirestoreService {
       );
       tx.set(ref, updated.toMap());
       return updated;
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Account security + locked-field change requests.
+  // ---------------------------------------------------------------------
+
+  /// Called by the account holder right after they successfully set a real
+  /// password via FirebaseAuth — allowed by firestore.rules only as this
+  /// exact true→false flip on their own document (see /users/{uid}).
+  Future<void> clearMustChangePassword(String uid) {
+    return _db.collection('users').doc(uid).update({'mustChangePassword': false});
+  }
+
+  Future<void> createProfileChangeRequest(ProfileChangeRequest request) {
+    return _db.collection('profileChangeRequests').doc().set(request.toMap());
+  }
+
+  Stream<List<ProfileChangeRequest>> watchMyProfileChangeRequests(String uid) {
+    return _db
+        .collection('profileChangeRequests')
+        .where('uid', isEqualTo: uid)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((s) => s.docs.map((d) => ProfileChangeRequest.fromMap(d.id, d.data())).toList());
+  }
+
+  Stream<List<ProfileChangeRequest>> watchProfileChangeRequests({ProfileChangeStatus? status}) {
+    Query<Map<String, dynamic>> q = _db.collection('profileChangeRequests');
+    if (status != null) q = q.where('status', isEqualTo: status.value);
+    return q.orderBy('createdAt', descending: true).snapshots().map(
+          (s) => s.docs.map((d) => ProfileChangeRequest.fromMap(d.id, d.data())).toList(),
+        );
+  }
+
+  /// Approves a request for a field that doesn't touch Firebase Auth
+  /// (fullName, phone, sex, classId) by writing it straight to the target
+  /// document — admin already has unconditional write there. 'email' and
+  /// 'role' changes go through FunctionsService.applyProfileChangeRequest
+  /// instead, since those also need the Admin SDK.
+  Future<void> applyDirectProfileChange(ProfileChangeRequest request, String reviewedBy) async {
+    final batch = _db.batch();
+    final fieldName = request.field == ProfileField.classId ? 'classId' : request.field.value;
+    batch.update(
+      _db.collection(request.targetCollection).doc(request.targetId),
+      {fieldName: request.requestedValue},
+    );
+    batch.update(_db.collection('profileChangeRequests').doc(request.id), {
+      'status': ProfileChangeStatus.approved.value,
+      'reviewedBy': reviewedBy,
+    });
+    await batch.commit();
+  }
+
+  Future<void> rejectProfileChangeRequest(String requestId, String reviewedBy) {
+    return _db.collection('profileChangeRequests').doc(requestId).update({
+      'status': ProfileChangeStatus.rejected.value,
+      'reviewedBy': reviewedBy,
     });
   }
 }

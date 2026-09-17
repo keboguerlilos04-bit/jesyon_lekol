@@ -492,4 +492,91 @@ class AppLocalizationsHt extends AppLocalizations {
   String loadErrorMessage(Object error) {
     return 'Pa kapab chaje done yo.\n$error';
   }
+
+  @override
+  String get reloginRequired =>
+      'Tanpri dekonekte epi rekonekte anvan w chanje modpas la.';
+
+  @override
+  String get mustChangePasswordTitle => 'Chanje Modpas Ou';
+
+  @override
+  String get mustChangePasswordBody =>
+      'Sa se premye fwa ou konekte. Tanpri chwazi yon nouvo modpas anvan w kontinye.';
+
+  @override
+  String get newPasswordField => 'Nouvo Modpas';
+
+  @override
+  String get passwordTooShort => 'Modpas la dwe gen omwen 6 karaktè';
+
+  @override
+  String get confirmPasswordField => 'Konfime Modpas';
+
+  @override
+  String get passwordsDontMatch => 'Modpas yo pa menm';
+
+  @override
+  String get changePasswordButton => 'Chanje Modpas';
+
+  @override
+  String get sendTempPasswordBody =>
+      'Bay anplwaye a enfòmasyon sa yo pou premye login li. Aplikasyon an ap mande l chanje modpas la imedyatman.';
+
+  @override
+  String get temporaryPasswordLabel => 'Modpas Tanporè';
+
+  @override
+  String get studentEmailOptionalField =>
+      'Email elèv (opsyonèl, pou kont pwòp elèv la)';
+
+  @override
+  String get addSecondParentToggle => 'Ajoute yon dezyèm paran';
+
+  @override
+  String get parent2FullNameField => 'Non konplè dezyèm paran';
+
+  @override
+  String get parent2EmailField => 'Email dezyèm paran';
+
+  @override
+  String get newAccountsCreatedBody =>
+      'Kont sa yo kreye. Bay chak moun enfòmasyon pa yo pou premye login. Aplikasyon an ap mande yo chanje modpas la imedyatman.';
+
+  @override
+  String get parentRoleLabel => 'Paran';
+
+  @override
+  String get accountAlreadyExisted =>
+      'Kont sa a te deja egziste — pa gen nouvo modpas.';
+
+  @override
+  String get myProfileTitle => 'Pwofil Mwen';
+
+  @override
+  String requestChangeTitle(Object field) {
+    return 'Mande chanjman: $field';
+  }
+
+  @override
+  String get newValueField => 'Nouvo valè';
+
+  @override
+  String get changeRequestSent =>
+      'Demann chanjman voye bay Admin pou apwobasyon.';
+
+  @override
+  String get sexField => 'Sèks';
+
+  @override
+  String get myChangeRequestsTitle => 'Demann Chanjman Mwen Yo';
+
+  @override
+  String get requestChangeTooltip => 'Mande chanjman';
+
+  @override
+  String get changeApplied => 'Chanjman aplike.';
+
+  @override
+  String get navChangeRequests => 'Demann Chanjman';
 }

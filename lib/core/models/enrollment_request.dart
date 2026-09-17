@@ -28,6 +28,14 @@ class EnrollmentRequest {
   final String parentFullName;
   final String parentEmail;
   final String? parentPhone;
+  /// Optional second parent — approveEnrollment creates a login for them too
+  /// (both parentFullName/parentEmail are required together).
+  final String? parent2FullName;
+  final String? parent2Email;
+  final String? parent2Phone;
+  /// Optional: when set, approveEnrollment also creates a student login
+  /// (schools may prefer parent-only access, hence optional).
+  final String? studentEmail;
   final EnrollmentRequestStatus status;
   final String? linkedStudentId;
   final String? linkedParentUid;
@@ -43,6 +51,10 @@ class EnrollmentRequest {
     this.dob,
     this.sex,
     this.parentPhone,
+    this.parent2FullName,
+    this.parent2Email,
+    this.parent2Phone,
+    this.studentEmail,
     this.status = EnrollmentRequestStatus.pending,
     this.linkedStudentId,
     this.linkedParentUid,
@@ -60,6 +72,10 @@ class EnrollmentRequest {
       parentFullName: map['parentFullName'] as String? ?? '',
       parentEmail: map['parentEmail'] as String? ?? '',
       parentPhone: map['parentPhone'] as String?,
+      parent2FullName: map['parent2FullName'] as String?,
+      parent2Email: map['parent2Email'] as String?,
+      parent2Phone: map['parent2Phone'] as String?,
+      studentEmail: map['studentEmail'] as String?,
       status: EnrollmentRequestStatusX.fromString(map['status'] as String? ?? 'pending'),
       linkedStudentId: map['linkedStudentId'] as String?,
       linkedParentUid: map['linkedParentUid'] as String?,
@@ -77,6 +93,10 @@ class EnrollmentRequest {
       'parentFullName': parentFullName,
       'parentEmail': parentEmail,
       'parentPhone': parentPhone,
+      'parent2FullName': parent2FullName,
+      'parent2Email': parent2Email,
+      'parent2Phone': parent2Phone,
+      'studentEmail': studentEmail,
       'status': status.value,
       'linkedStudentId': linkedStudentId,
       'linkedParentUid': linkedParentUid,

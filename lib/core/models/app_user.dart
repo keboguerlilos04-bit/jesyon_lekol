@@ -15,6 +15,10 @@ class AppUser {
   /// Free-text job title for staff (e.g. "Sekretè Jeneral", "Pwofesè Matematik").
   /// Purely informational — access control is driven by [role], not this field.
   final String? position;
+  /// Set by createStaffAccount/approveEnrollment on a freshly created
+  /// account; the router forces this user to /change-password until they
+  /// clear it (see app_router.dart and change_password_screen.dart).
+  final bool mustChangePassword;
 
   const AppUser({
     required this.uid,
@@ -25,6 +29,7 @@ class AppUser {
     this.photoUrl,
     this.active = true,
     this.position,
+    this.mustChangePassword = false,
   });
 
   factory AppUser.fromMap(String uid, Map<String, dynamic> map) {
@@ -37,6 +42,7 @@ class AppUser {
       role: UserRoleX.fromString(map['role'] as String? ?? 'student'),
       active: map['active'] as bool? ?? true,
       position: map['position'] as String?,
+      mustChangePassword: map['mustChangePassword'] as bool? ?? false,
     );
   }
 
@@ -49,6 +55,7 @@ class AppUser {
       'role': role.value,
       'active': active,
       'position': position,
+      'mustChangePassword': mustChangePassword,
     };
   }
 }

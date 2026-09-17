@@ -493,4 +493,91 @@ class AppLocalizationsEn extends AppLocalizations {
   String loadErrorMessage(Object error) {
     return 'Couldn\'t load the data.\n$error';
   }
+
+  @override
+  String get reloginRequired =>
+      'Please sign out and back in before changing your password.';
+
+  @override
+  String get mustChangePasswordTitle => 'Change Your Password';
+
+  @override
+  String get mustChangePasswordBody =>
+      'This is your first sign-in. Please choose a new password before continuing.';
+
+  @override
+  String get newPasswordField => 'New Password';
+
+  @override
+  String get passwordTooShort => 'Password must be at least 6 characters';
+
+  @override
+  String get confirmPasswordField => 'Confirm Password';
+
+  @override
+  String get passwordsDontMatch => 'Passwords don\'t match';
+
+  @override
+  String get changePasswordButton => 'Change Password';
+
+  @override
+  String get sendTempPasswordBody =>
+      'Give this information to the employee for their first sign-in. The app will require them to change the password immediately.';
+
+  @override
+  String get temporaryPasswordLabel => 'Temporary Password';
+
+  @override
+  String get studentEmailOptionalField =>
+      'Student email (optional, for the student\'s own account)';
+
+  @override
+  String get addSecondParentToggle => 'Add a second parent';
+
+  @override
+  String get parent2FullNameField => 'Second parent\'s full name';
+
+  @override
+  String get parent2EmailField => 'Second parent\'s email';
+
+  @override
+  String get newAccountsCreatedBody =>
+      'These accounts were created. Give each person their own information for their first sign-in. The app will require them to change the password immediately.';
+
+  @override
+  String get parentRoleLabel => 'Parent';
+
+  @override
+  String get accountAlreadyExisted =>
+      'This account already existed — no new password.';
+
+  @override
+  String get myProfileTitle => 'My Profile';
+
+  @override
+  String requestChangeTitle(Object field) {
+    return 'Request a change: $field';
+  }
+
+  @override
+  String get newValueField => 'New value';
+
+  @override
+  String get changeRequestSent =>
+      'Change request sent to the Admin for approval.';
+
+  @override
+  String get sexField => 'Sex';
+
+  @override
+  String get myChangeRequestsTitle => 'My Change Requests';
+
+  @override
+  String get requestChangeTooltip => 'Request a change';
+
+  @override
+  String get changeApplied => 'Change applied.';
+
+  @override
+  String get navChangeRequests => 'Change Requests';
 }

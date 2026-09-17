@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../models/user_role.dart';
 import '../services/providers.dart';
 import '../../features/admin/admin_home_screen.dart';
+import '../../features/auth/change_password_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/parent/parent_home_screen.dart';
 import '../../features/shared/splash_screen.dart';
@@ -15,6 +16,7 @@ import '../../features/teacher/teacher_home_screen.dart';
 const kLoginRoute = '/login';
 const kSplashRoute = '/splash';
 const kUnauthorizedRoute = '/unauthorized';
+const kChangePasswordRoute = '/change-password';
 
 const Map<UserRole, String> kRoleHomeRoute = {
   UserRole.admin: '/admin',
@@ -48,6 +50,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: kSplashRoute, builder: (context, state) => const SplashScreen()),
       GoRoute(path: kLoginRoute, builder: (context, state) => const LoginScreen()),
       GoRoute(path: kUnauthorizedRoute, builder: (context, state) => const UnauthorizedScreen()),
+      GoRoute(path: kChangePasswordRoute, builder: (context, state) => const ChangePasswordScreen()),
       GoRoute(path: '/admin', builder: (context, state) => const AdminHomeScreen()),
       GoRoute(path: '/teacher', builder: (context, state) => const TeacherHomeScreen()),
       GoRoute(path: '/parent', builder: (context, state) => const ParentHomeScreen()),
@@ -85,6 +88,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       final homeRoute = kRoleHomeRoute[role]!;
+      final onChangePassword = state.matchedLocation == kChangePasswordRoute;
+
+      // A freshly created account (createStaffAccount/approveEnrollment) is
+      // flagged mustChangePassword — block every other route until they set
+      // a real password. Read directly (not through a FutureProvider) for
+      // the same reason fetchRole() is called directly above.
+      final appUser = await container.read(firestoreServiceProvider).getUser(user.uid);
+      if (appUser?.mustChangePassword == true) {
+        return onChangePassword ? null : kChangePasswordRoute;
+      }
+      if (onChangePassword) {
+        // They just cleared the flag (or navigated here manually with
+        // nothing to change) — nothing left to do on this screen.
+        return homeRoute;
+      }
 
       if (loggingIn || onSplash) return homeRoute;
 

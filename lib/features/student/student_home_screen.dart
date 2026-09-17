@@ -8,6 +8,7 @@ import '../shared/assignments_list_view.dart';
 import '../shared/async_error_view.dart';
 import '../shared/attendance_summary_view.dart';
 import '../shared/grades_report_view.dart';
+import '../shared/my_profile_screen.dart';
 import '../shared/notifications_view.dart';
 
 /// A student's own dashboard: report card, attendance history, and upcoming
@@ -75,6 +76,14 @@ class StudentHomeScreen extends ConsumerWidget {
                               MaterialPageRoute(builder: (_) => NotificationsScreen(uid: uid)),
                             ),
                           ),
+                        IconButton(
+                          icon: const Icon(Icons.person_outline),
+                          tooltip: l10n.myProfileTitle,
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const MyProfileScreen()),
+                          ),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.logout),
                           onPressed: () => ref.read(authServiceProvider).signOut(),

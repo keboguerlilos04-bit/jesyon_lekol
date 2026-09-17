@@ -1,16 +1,72 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { auth, db } from "./admin";
 import { assertAdmin } from "./assertAdmin";
+import { generateTempPassword } from "./tempPassword";
 import * as admin from "firebase-admin";
 
 interface ApproveEnrollmentData {
   requestId: string;
 }
 
+interface CreatedAccount {
+  uid: string;
+  email: string;
+  tempPassword?: string; // absent when the account already existed
+}
+
+/**
+ * Creates the parent's Firebase Auth account if it doesn't already exist
+ * (a second child's enrollment reuses the same parent by email), links the
+ * student to it, and (re)appends studentId to their custom claims. Returns
+ * a tempPassword only when the account was freshly created.
+ */
+async function upsertParent(
+  email: string,
+  fullName: string,
+  phone: string | null | undefined,
+  studentId: string
+): Promise<CreatedAccount> {
+  let uid: string;
+  let tempPassword: string | undefined;
+
+  try {
+    uid = (await auth.getUserByEmail(email)).uid;
+  } catch (err) {
+    tempPassword = generateTempPassword();
+    uid = (
+      await auth.createUser({ email, displayName: fullName, password: tempPassword })
+    ).uid;
+    await db.collection("users").doc(uid).set({
+      fullName,
+      email,
+      phone: phone || null,
+      role: "parent",
+      active: true,
+      mustChangePassword: true,
+    });
+  }
+
+  await db.collection("parents").doc(uid).set(
+    { studentIds: admin.firestore.FieldValue.arrayUnion(studentId), phone: phone || null },
+    { merge: true }
+  );
+
+  // Custom claims can't use arrayUnion — read the current list and append.
+  const parentUser = await auth.getUser(uid);
+  const currentStudentIds: string[] = (parentUser.customClaims?.studentIds as string[]) || [];
+  await auth.setCustomUserClaims(uid, {
+    role: "parent",
+    studentIds: [...new Set([...currentStudentIds, studentId])],
+  });
+
+  return { uid, email, tempPassword };
+}
+
 /**
  * Admin-only: turns a pending /enrollmentRequests document into a real
- * /students record, creating (or reusing, for a second child) the parent's
- * Firebase Auth account and appending to their studentIds custom claim.
+ * /students record, creating the student's own login, the parent's Firebase
+ * Auth account (or a second parent's, if provided) and linking them all
+ * together via studentIds custom claims.
  *
  * This is the ONLY path that is allowed to create a /students document with
  * a parentIds link or grant a parent account access to a child's records —
@@ -34,63 +90,62 @@ export const approveEnrollment = onCall<ApproveEnrollmentData>(async (request) =
     throw new HttpsError("failed-precondition", "Demann sa a deja trete.");
   }
 
-  const parentEmail: string = data.parentEmail;
-  let passwordResetLink: string | undefined;
-  let parentUid: string;
+  const studentRef = db.collection("students").doc();
 
-  try {
-    const existing = await auth.getUserByEmail(parentEmail);
-    parentUid = existing.uid;
-  } catch (err) {
-    const userRecord = await auth.createUser({
-      email: parentEmail,
-      displayName: data.parentFullName,
-      password: `Tmp-${Math.random().toString(36).slice(2)}${Date.now()}`,
+  const parent = await upsertParent(data.parentEmail, data.parentFullName, data.parentPhone, studentRef.id);
+  let parent2: CreatedAccount | undefined;
+  if (data.parent2Email && data.parent2FullName) {
+    parent2 = await upsertParent(data.parent2Email, data.parent2FullName, data.parent2Phone, studentRef.id);
+  }
+
+  // The student's own login is optional per school, but we create one by
+  // default at enrollment time so credentials are handed out once, up
+  // front, rather than as a separate manual step later.
+  const studentTempPassword = generateTempPassword();
+  const studentEmail: string | undefined = data.studentEmail || undefined;
+  let studentUid: string | undefined;
+  if (studentEmail) {
+    const studentUser = await auth.createUser({
+      email: studentEmail,
+      displayName: `${data.studentFirstName} ${data.studentLastName}`,
+      password: studentTempPassword,
     });
-    parentUid = userRecord.uid;
-    passwordResetLink = await auth.generatePasswordResetLink(parentEmail);
-
-    await db.collection("users").doc(parentUid).set({
-      fullName: data.parentFullName,
-      email: parentEmail,
-      phone: data.parentPhone || null,
-      role: "parent",
+    studentUid = studentUser.uid;
+    await auth.setCustomUserClaims(studentUid, { role: "student", studentId: studentRef.id });
+    await db.collection("users").doc(studentUid).set({
+      fullName: `${data.studentFirstName} ${data.studentLastName}`,
+      email: studentEmail,
+      role: "student",
       active: true,
+      mustChangePassword: true,
     });
   }
 
-  const studentRef = db.collection("students").doc();
+  const parentIds = [parent.uid, ...(parent2 ? [parent2.uid] : [])];
   await studentRef.set({
     firstName: data.studentFirstName,
     lastName: data.studentLastName,
     dob: data.dob || null,
     sex: data.sex || null,
     classId: data.classId,
-    parentIds: admin.firestore.FieldValue.arrayUnion(parentUid),
+    uid: studentUid || null,
+    parentIds,
     enrollmentStatus: "active",
-  });
-
-  await db.collection("parents").doc(parentUid).set(
-    {
-      studentIds: admin.firestore.FieldValue.arrayUnion(studentRef.id),
-      phone: data.parentPhone || null,
-    },
-    { merge: true }
-  );
-
-  // Custom claims can't use arrayUnion — read the current list and append.
-  const parentUser = await auth.getUser(parentUid);
-  const currentStudentIds: string[] = (parentUser.customClaims?.studentIds as string[]) || [];
-  await auth.setCustomUserClaims(parentUid, {
-    role: "parent",
-    studentIds: [...new Set([...currentStudentIds, studentRef.id])],
   });
 
   await requestRef.update({
     status: "approved",
     linkedStudentId: studentRef.id,
-    linkedParentUid: parentUid,
+    linkedParentUid: parent.uid,
   });
 
-  return { studentId: studentRef.id, parentUid, passwordResetLink };
+  return {
+    studentId: studentRef.id,
+    parentUid: parent.uid,
+    accounts: [
+      { role: "parent", email: parent.email, tempPassword: parent.tempPassword },
+      ...(parent2 ? [{ role: "parent", email: parent2.email, tempPassword: parent2.tempPassword }] : []),
+      ...(studentUid ? [{ role: "student", email: studentEmail, tempPassword: studentTempPassword }] : []),
+    ],
+  };
 });

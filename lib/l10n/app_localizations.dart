@@ -999,6 +999,162 @@ abstract class AppLocalizations {
   /// In ht, this message translates to:
   /// **'Pa kapab chaje done yo.\n{error}'**
   String loadErrorMessage(Object error);
+
+  /// No description provided for @reloginRequired.
+  ///
+  /// In ht, this message translates to:
+  /// **'Tanpri dekonekte epi rekonekte anvan w chanje modpas la.'**
+  String get reloginRequired;
+
+  /// No description provided for @mustChangePasswordTitle.
+  ///
+  /// In ht, this message translates to:
+  /// **'Chanje Modpas Ou'**
+  String get mustChangePasswordTitle;
+
+  /// No description provided for @mustChangePasswordBody.
+  ///
+  /// In ht, this message translates to:
+  /// **'Sa se premye fwa ou konekte. Tanpri chwazi yon nouvo modpas anvan w kontinye.'**
+  String get mustChangePasswordBody;
+
+  /// No description provided for @newPasswordField.
+  ///
+  /// In ht, this message translates to:
+  /// **'Nouvo Modpas'**
+  String get newPasswordField;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In ht, this message translates to:
+  /// **'Modpas la dwe gen omwen 6 karaktè'**
+  String get passwordTooShort;
+
+  /// No description provided for @confirmPasswordField.
+  ///
+  /// In ht, this message translates to:
+  /// **'Konfime Modpas'**
+  String get confirmPasswordField;
+
+  /// No description provided for @passwordsDontMatch.
+  ///
+  /// In ht, this message translates to:
+  /// **'Modpas yo pa menm'**
+  String get passwordsDontMatch;
+
+  /// No description provided for @changePasswordButton.
+  ///
+  /// In ht, this message translates to:
+  /// **'Chanje Modpas'**
+  String get changePasswordButton;
+
+  /// No description provided for @sendTempPasswordBody.
+  ///
+  /// In ht, this message translates to:
+  /// **'Bay anplwaye a enfòmasyon sa yo pou premye login li. Aplikasyon an ap mande l chanje modpas la imedyatman.'**
+  String get sendTempPasswordBody;
+
+  /// No description provided for @temporaryPasswordLabel.
+  ///
+  /// In ht, this message translates to:
+  /// **'Modpas Tanporè'**
+  String get temporaryPasswordLabel;
+
+  /// No description provided for @studentEmailOptionalField.
+  ///
+  /// In ht, this message translates to:
+  /// **'Email elèv (opsyonèl, pou kont pwòp elèv la)'**
+  String get studentEmailOptionalField;
+
+  /// No description provided for @addSecondParentToggle.
+  ///
+  /// In ht, this message translates to:
+  /// **'Ajoute yon dezyèm paran'**
+  String get addSecondParentToggle;
+
+  /// No description provided for @parent2FullNameField.
+  ///
+  /// In ht, this message translates to:
+  /// **'Non konplè dezyèm paran'**
+  String get parent2FullNameField;
+
+  /// No description provided for @parent2EmailField.
+  ///
+  /// In ht, this message translates to:
+  /// **'Email dezyèm paran'**
+  String get parent2EmailField;
+
+  /// No description provided for @newAccountsCreatedBody.
+  ///
+  /// In ht, this message translates to:
+  /// **'Kont sa yo kreye. Bay chak moun enfòmasyon pa yo pou premye login. Aplikasyon an ap mande yo chanje modpas la imedyatman.'**
+  String get newAccountsCreatedBody;
+
+  /// No description provided for @parentRoleLabel.
+  ///
+  /// In ht, this message translates to:
+  /// **'Paran'**
+  String get parentRoleLabel;
+
+  /// No description provided for @accountAlreadyExisted.
+  ///
+  /// In ht, this message translates to:
+  /// **'Kont sa a te deja egziste — pa gen nouvo modpas.'**
+  String get accountAlreadyExisted;
+
+  /// No description provided for @myProfileTitle.
+  ///
+  /// In ht, this message translates to:
+  /// **'Pwofil Mwen'**
+  String get myProfileTitle;
+
+  /// No description provided for @requestChangeTitle.
+  ///
+  /// In ht, this message translates to:
+  /// **'Mande chanjman: {field}'**
+  String requestChangeTitle(Object field);
+
+  /// No description provided for @newValueField.
+  ///
+  /// In ht, this message translates to:
+  /// **'Nouvo valè'**
+  String get newValueField;
+
+  /// No description provided for @changeRequestSent.
+  ///
+  /// In ht, this message translates to:
+  /// **'Demann chanjman voye bay Admin pou apwobasyon.'**
+  String get changeRequestSent;
+
+  /// No description provided for @sexField.
+  ///
+  /// In ht, this message translates to:
+  /// **'Sèks'**
+  String get sexField;
+
+  /// No description provided for @myChangeRequestsTitle.
+  ///
+  /// In ht, this message translates to:
+  /// **'Demann Chanjman Mwen Yo'**
+  String get myChangeRequestsTitle;
+
+  /// No description provided for @requestChangeTooltip.
+  ///
+  /// In ht, this message translates to:
+  /// **'Mande chanjman'**
+  String get requestChangeTooltip;
+
+  /// No description provided for @changeApplied.
+  ///
+  /// In ht, this message translates to:
+  /// **'Chanjman aplike.'**
+  String get changeApplied;
+
+  /// No description provided for @navChangeRequests.
+  ///
+  /// In ht, this message translates to:
+  /// **'Demann Chanjman'**
+  String get navChangeRequests;
 }
 
 class _AppLocalizationsDelegate

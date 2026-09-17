@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../shared/my_profile_screen.dart';
 import 'attendance_screen.dart';
 import 'grades_entry_screen.dart';
 import 'teacher_assignments_screen.dart';
@@ -47,6 +48,14 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
           title: Text(current.label),
           actions: [
             IconButton(
+              icon: const Icon(Icons.person_outline),
+              tooltip: AppLocalizations.of(context)!.myProfileTitle,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MyProfileScreen()),
+              ),
+            ),
+            IconButton(
               icon: const Icon(Icons.logout),
               onPressed: () => ref.read(authServiceProvider).signOut(),
             ),
@@ -74,6 +83,14 @@ class _TeacherHomeScreenState extends ConsumerState<TeacherHomeScreen> {
       appBar: AppBar(
         title: Text(current.label),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            tooltip: AppLocalizations.of(context)!.myProfileTitle,
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MyProfileScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => ref.read(authServiceProvider).signOut(),

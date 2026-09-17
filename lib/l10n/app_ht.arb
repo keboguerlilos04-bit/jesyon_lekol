@@ -186,5 +186,37 @@
   "noFeeInfo": "Poko gen enfòmasyon frè pou ane lekòl sa a.",
 
   "loadErrorMessage": "Pa kapab chaje done yo.\n{error}",
-  "@loadErrorMessage": { "placeholders": { "error": {} } }
+  "@loadErrorMessage": { "placeholders": { "error": {} } },
+
+  "reloginRequired": "Tanpri dekonekte epi rekonekte anvan w chanje modpas la.",
+  "mustChangePasswordTitle": "Chanje Modpas Ou",
+  "mustChangePasswordBody": "Sa se premye fwa ou konekte. Tanpri chwazi yon nouvo modpas anvan w kontinye.",
+  "newPasswordField": "Nouvo Modpas",
+  "passwordTooShort": "Modpas la dwe gen omwen 6 karaktè",
+  "confirmPasswordField": "Konfime Modpas",
+  "passwordsDontMatch": "Modpas yo pa menm",
+  "changePasswordButton": "Chanje Modpas",
+
+  "sendTempPasswordBody": "Bay anplwaye a enfòmasyon sa yo pou premye login li. Aplikasyon an ap mande l chanje modpas la imedyatman.",
+  "temporaryPasswordLabel": "Modpas Tanporè",
+
+  "studentEmailOptionalField": "Email elèv (opsyonèl, pou kont pwòp elèv la)",
+  "addSecondParentToggle": "Ajoute yon dezyèm paran",
+  "parent2FullNameField": "Non konplè dezyèm paran",
+  "parent2EmailField": "Email dezyèm paran",
+  "newAccountsCreatedBody": "Kont sa yo kreye. Bay chak moun enfòmasyon pa yo pou premye login. Aplikasyon an ap mande yo chanje modpas la imedyatman.",
+  "parentRoleLabel": "Paran",
+  "accountAlreadyExisted": "Kont sa a te deja egziste — pa gen nouvo modpas.",
+
+  "myProfileTitle": "Pwofil Mwen",
+  "requestChangeTitle": "Mande chanjman: {field}",
+  "@requestChangeTitle": { "placeholders": { "field": {} } },
+  "newValueField": "Nouvo valè",
+  "changeRequestSent": "Demann chanjman voye bay Admin pou apwobasyon.",
+  "sexField": "Sèks",
+  "myChangeRequestsTitle": "Demann Chanjman Mwen Yo",
+  "requestChangeTooltip": "Mande chanjman",
+
+  "changeApplied": "Chanjman aplike.",
+  "navChangeRequests": "Demann Chanjman"
 }

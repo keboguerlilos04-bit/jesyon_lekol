@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../shared/my_profile_screen.dart';
 import 'classes_screen.dart';
 import 'enrollment_requests_screen.dart';
 import 'finance_screen.dart';
+import 'profile_change_requests_screen.dart';
 import 'school_years_screen.dart';
 import 'staff_screen.dart';
 import 'subjects_screen.dart';
@@ -24,6 +26,7 @@ List<_AdminSection> _sections(AppLocalizations l10n) => [
       _AdminSection(l10n.navStaff, Icons.people_outline, const StaffScreen()),
       _AdminSection(l10n.navEnrollment, Icons.how_to_reg_outlined, const EnrollmentRequestsScreen()),
       _AdminSection(l10n.navFinance, Icons.payments_outlined, const FinanceScreen()),
+      _AdminSection(l10n.navChangeRequests, Icons.edit_note_outlined, const ProfileChangeRequestsScreen()),
     ];
 
 /// Admin dashboard shell: a role-scoped tab switcher (not deep-linked —
@@ -54,6 +57,14 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
           title: Text(current.label),
           actions: [
             IconButton(
+              icon: const Icon(Icons.person_outline),
+              tooltip: AppLocalizations.of(context)!.myProfileTitle,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MyProfileScreen()),
+              ),
+            ),
+            IconButton(
               icon: const Icon(Icons.logout),
               onPressed: () => ref.read(authServiceProvider).signOut(),
             ),
@@ -81,6 +92,14 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
       appBar: AppBar(
         title: Text(current.label),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            tooltip: AppLocalizations.of(context)!.myProfileTitle,
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MyProfileScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => ref.read(authServiceProvider).signOut(),

@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { auth, db } from "./admin";
 import { assertAdmin } from "./assertAdmin";
+import { generateTempPassword } from "./tempPassword";
 
 interface CreateStaffData {
   fullName: string;
@@ -18,10 +19,11 @@ const ALLOWED_ROLES = new Set(["admin", "teacher"]);
  * a secretary given admin-level app access), sets their role custom claim,
  * and writes the matching /users (and, for teachers, /teachers) document.
  *
- * Returns a password-reset link instead of a temporary password so the new
- * account owner sets their own credential — this project has no outbound
- * email configured yet, so the admin is expected to hand the link over
- * directly (SMS, WhatsApp, in person, etc.) until that's wired up.
+ * Returns a short temporary password the admin hands to the new employee
+ * directly (this project has no outbound email configured yet). The
+ * account is flagged `mustChangePassword: true`, which the app's router
+ * enforces by routing straight to a change-password screen on first sign-in
+ * — the temporary password is never usable for anything beyond that.
  */
 export const createStaffAccount = onCall<CreateStaffData>(async (request) => {
   assertAdmin(request);
@@ -35,10 +37,12 @@ export const createStaffAccount = onCall<CreateStaffData>(async (request) => {
     throw new HttpsError("invalid-argument", `Wòl envalid: ${role}`);
   }
 
+  const tempPassword = generateTempPassword();
+
   const userRecord = await auth.createUser({
     email: email.trim(),
     displayName: fullName.trim(),
-    password: cryptoRandomPassword(),
+    password: tempPassword,
   });
 
   await auth.setCustomUserClaims(userRecord.uid, { role });
@@ -49,6 +53,7 @@ export const createStaffAccount = onCall<CreateStaffData>(async (request) => {
     role,
     position: position?.trim() || null,
     active: true,
+    mustChangePassword: true,
   });
 
   if (role === "teacher") {
@@ -58,13 +63,5 @@ export const createStaffAccount = onCall<CreateStaffData>(async (request) => {
     });
   }
 
-  const passwordResetLink = await auth.generatePasswordResetLink(email.trim());
-
-  return { uid: userRecord.uid, passwordResetLink };
+  return { uid: userRecord.uid, tempPassword };
 });
-
-function cryptoRandomPassword(): string {
-  // Never actually used to sign in — the account owner sets their own
-  // password via the reset link returned above.
-  return `Tmp-${Math.random().toString(36).slice(2)}${Date.now()}`;
-}

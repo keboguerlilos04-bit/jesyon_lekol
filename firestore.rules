@@ -31,6 +31,12 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if request.auth != null && (isAdmin() || request.auth.uid == uid);
       allow write: if isAdmin();
+      // A signed-in user may only ever clear their own mustChangePassword
+      // flag (after actually changing it via Firebase Auth) — nothing else
+      // about their own /users doc is client-writable.
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mustChangePassword'])
+        && request.resource.data.mustChangePassword == false;
     }
 
     match /students/{studentId} {
@@ -122,6 +128,19 @@ service cloud.firestore {
         && (isTeacher() || isAdmin())
         && request.resource.data.fromUid == request.auth.uid;
       allow update, delete: if false;
+    }
+
+    // A locked-field change (name typo, email, phone, sex, class, role) an
+    // account holder cannot make directly — see isSelf()/role() above for
+    // why: those fields feed access control or identity, so only an admin
+    // (or, for email/role, the applyProfileChangeRequest Cloud Function
+    // acting as admin) may actually apply one.
+    match /profileChangeRequests/{requestId} {
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow read: if isAdmin() || (request.auth != null && resource.data.uid == request.auth.uid);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     match /notifications/{notifId} {

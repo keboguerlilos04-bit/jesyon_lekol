@@ -27,27 +27,29 @@ class SubjectsScreen extends ConsumerWidget {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(existing == null ? l10n.newSubject : l10n.editSubject),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: l10n.subjectNameField),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: classId,
-                decoration: InputDecoration(labelText: l10n.classLabel),
-                items: classes.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                onChanged: (v) => setState(() => classId = v),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: coefficientController,
-                decoration: InputDecoration(labelText: l10n.coefficientField),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: l10n.subjectNameField),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: classId,
+                  decoration: InputDecoration(labelText: l10n.classLabel),
+                  items: classes.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+                  onChanged: (v) => setState(() => classId = v),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: coefficientController,
+                  decoration: InputDecoration(labelText: l10n.coefficientField),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),

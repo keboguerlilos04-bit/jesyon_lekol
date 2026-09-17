@@ -25,43 +25,55 @@ class StaffScreen extends ConsumerWidget {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(l10n.newStaffTitle),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: InputDecoration(labelText: l10n.fullNameField),
-                  validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: emailController,
-                  decoration: InputDecoration(labelText: l10n.email),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (v) => (v == null || !v.contains('@')) ? l10n.invalidEmail : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: positionController,
-                  decoration: InputDecoration(labelText: l10n.positionField),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<UserRole>(
-                  initialValue: appRole,
-                  decoration: InputDecoration(labelText: l10n.appAccessLabel),
-                  items: [
-                    DropdownMenuItem(value: UserRole.teacher, child: Text(l10n.roleTeacherOption)),
-                    DropdownMenuItem(value: UserRole.admin, child: Text(l10n.roleAdminOption)),
+          content: SizedBox(
+            width: 420,
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: nameController,
+                      decoration: InputDecoration(labelText: l10n.fullNameField),
+                      validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: emailController,
+                      decoration: InputDecoration(labelText: l10n.email),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) => (v == null || !v.contains('@')) ? l10n.invalidEmail : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: positionController,
+                      decoration: InputDecoration(labelText: l10n.positionField),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<UserRole>(
+                      initialValue: appRole,
+                      isExpanded: true,
+                      decoration: InputDecoration(labelText: l10n.appAccessLabel),
+                      items: [
+                        DropdownMenuItem(
+                          value: UserRole.teacher,
+                          child: Text(l10n.roleTeacherOption, overflow: TextOverflow.ellipsis),
+                        ),
+                        DropdownMenuItem(
+                          value: UserRole.admin,
+                          child: Text(l10n.roleAdminOption, overflow: TextOverflow.ellipsis),
+                        ),
+                      ],
+                      onChanged: (v) => setState(() => appRole = v ?? UserRole.teacher),
+                    ),
+                    if (error != null) ...[
+                      const SizedBox(height: 12),
+                      Text(error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    ],
                   ],
-                  onChanged: (v) => setState(() => appRole = v ?? UserRole.teacher),
                 ),
-                if (error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                ],
-              ],
+              ),
             ),
           ),
           actions: [
@@ -87,8 +99,12 @@ class StaffScreen extends ConsumerWidget {
                             );
                         if (context.mounted) {
                           Navigator.pop(context);
-                          if (result.passwordResetLink != null) {
-                            await _showPasswordLinkDialog(context, result.passwordResetLink!);
+                          if (result.tempPassword != null) {
+                            await _showTempPasswordDialog(
+                              context,
+                              email: emailController.text.trim(),
+                              tempPassword: result.tempPassword!,
+                            );
                           }
                         }
                       } catch (e) {
@@ -108,7 +124,11 @@ class StaffScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showPasswordLinkDialog(BuildContext context, String link) {
+  Future<void> _showTempPasswordDialog(
+    BuildContext context, {
+    required String email,
+    required String tempPassword,
+  }) {
     final l10n = AppLocalizations.of(context)!;
     return showDialog<void>(
       context: context,
@@ -118,9 +138,10 @@ class StaffScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.sendLinkToStaffBody),
-            const SizedBox(height: 8),
-            SelectableText(link),
+            Text(l10n.sendTempPasswordBody),
+            const SizedBox(height: 12),
+            SelectableText('${l10n.email}: $email'),
+            SelectableText('${l10n.temporaryPasswordLabel}: $tempPassword'),
           ],
         ),
         actions: [

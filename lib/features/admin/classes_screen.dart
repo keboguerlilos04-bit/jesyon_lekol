@@ -26,29 +26,32 @@ class ClassesScreen extends ConsumerWidget {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(existing == null ? l10n.newClass : l10n.editClass),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: l10n.classNameField),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: yearId,
-                decoration: InputDecoration(labelText: l10n.navSchoolYears),
-                items: years
-                    .map((y) => DropdownMenuItem(value: y.id, child: Text(y.label)))
-                    .toList(),
-                onChanged: (v) => setState(() => yearId = v),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: capacityController,
-                decoration: InputDecoration(labelText: l10n.capacityField),
-                keyboardType: TextInputType.number,
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: l10n.classNameField),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: yearId,
+                  isExpanded: true,
+                  decoration: InputDecoration(labelText: l10n.navSchoolYears),
+                  items: years
+                      .map((y) => DropdownMenuItem(value: y.id, child: Text(y.label, overflow: TextOverflow.ellipsis)))
+                      .toList(),
+                  onChanged: (v) => setState(() => yearId = v),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: capacityController,
+                  decoration: InputDecoration(labelText: l10n.capacityField),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
